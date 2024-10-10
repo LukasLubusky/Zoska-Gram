@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // robertweb/src/app/auth/registracia/page.tsx
 
 import Typography from '@mui/material/Typography';
@@ -11,3 +12,22 @@ export default function SignUp() {
 
   );
 }
+=======
+// src/app/auth/registracia/page.tsx
+
+
+
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+
+export const metadata = { title:"Registrácia | ZoskaGram" };
+
+
+export default function SignUp() {
+  return (
+    <Box>
+      <Typography>Registrácia</Typography>
+    </Box>
+  );
+}
+>>>>>>> 47ee7fa02edbbbaaba3d852fc65bdabe57973b00

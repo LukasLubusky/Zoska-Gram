@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 // /src/app/layout.tsx
 
@@ -8,6 +9,16 @@ import SimpleBottomNavigation from "@/components/NavBar";
 export const metadata: Metadata = {
   title: "RobertWeb",
   description: "Created by Robert",
+=======
+import type { Metadata } from "next";
+import "./globals.css";
+
+
+
+export const metadata: Metadata = {
+  title: "ZoskaGram",
+  description: "Created by @LukasLubusky",
+>>>>>>> 47ee7fa02edbbbaaba3d852fc65bdabe57973b00
 };
 
 export default function RootLayout({
@@ -18,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="sk">
       <body>
+<<<<<<< HEAD
         <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
           {/* Main content */}
           <main style={{ flex: 1 }}>{children}</main>
@@ -25,10 +37,14 @@ export default function RootLayout({
           {/* Bottom Navigation - Stays at the bottom */}
           <SimpleBottomNavigation />
         </div>
+=======
+        {children}
+>>>>>>> 47ee7fa02edbbbaaba3d852fc65bdabe57973b00
       </body>
     </html>
   );
 }
+<<<<<<< HEAD
 
 
 // import type { Metadata } from "next";
@@ -54,3 +70,5 @@ export default function RootLayout({
 //     </html>
 //   );
 // }
+=======
+>>>>>>> 47ee7fa02edbbbaaba3d852fc65bdabe57973b00
