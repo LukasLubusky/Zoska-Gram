@@ -3,7 +3,7 @@
 import { Container } from '@mui/material';
 import Typography from '@mui/material/Typography';
 
-export const metadata = { title: 'Detail komentara | RobertWeb'};
+export const metadata = { title: 'Detail komentara | ZoskaGram'};
 
 export default function CommentDetail({ 
   params,

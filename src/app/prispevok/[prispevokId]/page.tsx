@@ -2,7 +2,7 @@
 
 import Typography from '@mui/material/Typography';
 
-export const metadata = { title: 'Detail prispevku | RobertWeb'};
+export const metadata = { title: 'Detail prispevku | ZoskaGram'};
 
 export default function PostDetail({ 
   params,

@@ -2,7 +2,7 @@
 
 import Typography from '@mui/material/Typography';
 
-export const metadata = { title: 'GDPR | RobertWeb'};
+export const metadata = { title: 'GDPR | ZoskaGram'};
 
 export default function GDPR() {
   return (

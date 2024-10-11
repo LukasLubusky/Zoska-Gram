@@ -3,7 +3,7 @@
 
 import Typography from '@mui/material/Typography';
 
-export const metadata = { title: 'Domov | RobertWeb'};
+export const metadata = { title: 'Domov | ZoskaGram'};
 
 export default function Home() {
   return (
