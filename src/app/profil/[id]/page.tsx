@@ -1,4 +1,4 @@
-// robertweb/src/app/profil/[id]/page.tsx
+// src\app\profil\[id]\page.tsx
 
 import Typography from '@mui/material/Typography';
 

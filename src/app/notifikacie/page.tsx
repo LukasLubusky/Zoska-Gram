@@ -1,4 +1,4 @@
-// robertweb/src/app/notifikacie/page.tsx
+// src\app\notifikacie\page.tsx
 
 import Typography from '@mui/material/Typography';
 

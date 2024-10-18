@@ -1,4 +1,4 @@
-// robertweb/src/app/prispevok/[prispevokId]/komentar/[komentarId]/page.tsx
+// src\app\prispevok\[prispevokId]\komentar\[komentarId]\page.tsx
 
 import { Container } from '@mui/material';
 import Typography from '@mui/material/Typography';

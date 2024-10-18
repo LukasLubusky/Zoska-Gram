@@ -1,4 +1,4 @@
-// robertweb/src/app/prispevok/[id]/page.tsx
+// src\app\prispevok\[prispevokId]\page.tsx
 
 import Typography from '@mui/material/Typography';
 

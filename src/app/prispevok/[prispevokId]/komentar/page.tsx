@@ -1,4 +1,4 @@
-// robertweb/src/app/prispevok/[prispevokId]/komentar/page.tsx
+// src\app\prispevok\[prispevokId]\komentar\page.tsx
 
 import Typography from '@mui/material/Typography';
 

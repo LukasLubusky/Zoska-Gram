@@ -1,4 +1,4 @@
-// robertweb/src/app/auth/registracia/page.tsx
+// src\app\auth\registracia\page.tsx
 
 import Typography from '@mui/material/Typography';
 

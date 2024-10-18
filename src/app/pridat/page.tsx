@@ -1,4 +1,4 @@
-// robertweb/src/app/pridat/page.tsx
+// src\app\pridat\page.tsx
 
 import Typography from '@mui/material/Typography';
 
