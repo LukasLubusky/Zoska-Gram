@@ -1,12 +1,12 @@
 // src/app/auth/registracia/page.tsx
 
+"use client"; // Marks this file as a Client Component
 
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { signIn } from 'next-auth/react';
 
-export const metadata = { title: 'Registrácia | ZoskaGram' };
-
+// No metadata export here
 export default function SignUp() {
   return (
     <>

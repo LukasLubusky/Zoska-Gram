@@ -6,10 +6,8 @@ import Typography from '@mui/material/Typography';
 import { useSession } from 'next-auth/react';
 import { Container } from '@mui/material';
 
-// No need to export metadata here
-
 export default function Home() {
-  const { data: session, status } = useSession(); // Fetch session status
+  const { data: session, status } = useSession(); // Fetch session and status
 
   return (
     <Container>
@@ -17,7 +15,7 @@ export default function Home() {
 
       {status === 'authenticated' ? (
         <>
-          <Typography variant="h4">Vitaj späť, meno!</Typography>
+          <Typography variant="h4">Vitaj späť, {session?.user?.name}!</Typography> {/* Using session here */}
           <Typography variant="body1">Tu sú novinky pre teba.</Typography>
           {/* Additional content for logged-in users */}
         </>
@@ -31,3 +29,4 @@ export default function Home() {
     </Container>
   );
 }
+

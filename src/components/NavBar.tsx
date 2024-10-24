@@ -1,3 +1,5 @@
+// src\components\NavBar.tsx
+
 "use client";
 
 import * as React from 'react';
@@ -13,12 +15,12 @@ import LoginIcon from '@mui/icons-material/Login';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession} from 'next-auth/react';
 
 export default function SimpleBottomNavigation() {
   const [value, setValue] = React.useState('/');
   const router = useRouter();
-  const { data: session, status } = useSession(); // Fetch session status
+  const { status } = useSession();
 
   const handleNavigation = (newValue: string) => {
     setValue(newValue);
@@ -34,72 +36,25 @@ export default function SimpleBottomNavigation() {
           handleNavigation(newValue);
         }}
         sx={{
-          bgcolor: 'background.paper', // Ensure the background is visible
-          borderTop: '1px solid rgba(0, 0, 0, 0.12)', // Add a border for better visibility
-          paddingBottom: 2, // Adjust padding as needed
+          bgcolor: 'background.paper',
+          borderTop: '1px solid rgba(0, 0, 0, 0.12)',
         }}
       >
-        {/* Visible for both logged in and logged out users */}
-        <BottomNavigationAction
-          label="Domov"
-          value={'/'}
-          icon={<HomeIcon />}
-          sx={{ color: 'text.primary' }} // Set a visible color for text/icon
-        />
+        <BottomNavigationAction label="Domov" value={'/'} icon={<HomeIcon />} />
 
         {status === 'authenticated' ? (
-          <>
-            {/* Logged in state */}
-            <BottomNavigationAction
-              label="Hľadať"
-              value={'/hladat'}
-              icon={<SearchIcon />}
-              sx={{ color: 'text.primary' }} // Set a visible color for text/icon
-            />
-            <BottomNavigationAction
-              label="Pridať"
-              value={'/pridat'}
-              icon={<AddCircleIcon />}
-              sx={{ color: 'text.primary' }} // Set a visible color for text/icon
-            />
-            <BottomNavigationAction
-              label="Profil"
-              value={'/profil'}
-              icon={<PersonIcon />}
-              sx={{ color: 'text.primary' }} // Set a visible color for text/icon
-            />
-            <BottomNavigationAction
-              label="Odhlásiť"
-              onClick={() => signOut()}
-              icon={<LogoutIcon />}
-              sx={{ color: 'text.primary' }} // Set a visible color for text/icon
-            />
-          </>
+          [
+            <BottomNavigationAction key="hladat" label="Hľadať" value={'/hladanie'} icon={<SearchIcon />} />,
+            <BottomNavigationAction key="pridat" label="Pridať" value={'/pridat'} icon={<AddCircleIcon />} />,
+            <BottomNavigationAction key="profil" label="Profil" value={'/profil'} icon={<PersonIcon />} />,
+            <BottomNavigationAction key="odhlasit" label="Odhlásiť" value={'/auth/odhlasenie'} icon={<LogoutIcon />} />,
+          ]
         ) : (
-          <>
-            {/* Logged out state */}
-            <BottomNavigationAction
-              label="Prispevky"
-              value={'/prispevok'}
-              icon={<PostAddIcon />}
-              onClick={() => handleNavigation('/prispevok')}
-              sx={{ color: 'text.primary' }} // Set a visible color for text/icon
-            />
-            <BottomNavigationAction
-              label="Prihlásenie"
-              value={'/auth/prihlasenie'}
-              icon={<LoginIcon />}
-              onClick={() => handleNavigation('/auth/prihlasenie')}
-              sx={{ color: 'text.primary' }} // Set a visible color for text/icon
-            />
-            <BottomNavigationAction
-              label="Registrácia"
-              value={'/auth/registracia'}
-              icon={<HowToRegIcon />}
-              onClick={() => handleNavigation('/auth/registracia')}
-              sx={{ color: 'text.primary' }} // Set a visible color for text/icon
-            />
-          </>
+          [
+            <BottomNavigationAction key="prispevky" label="Prispevky" value={'/prispevok'} icon={<PostAddIcon />} />,
+            <BottomNavigationAction key="prihlasenie" label="Prihlásenie" value={'/auth/prihlasenie'} icon={<LoginIcon />} />,
+            <BottomNavigationAction key="registracia" label="Registrácia" value={'/auth/registracia'} icon={<HowToRegIcon />} />,
+          ]
         )}
       </BottomNavigation>
     </Box>
