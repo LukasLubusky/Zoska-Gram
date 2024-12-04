@@ -1,22 +1,13 @@
-"use client"; // Keep this directive
+// src/app/auth/registracia/page.tsx
 
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import { signOut } from 'next-auth/react';
+import SignOutView from '@/sections/SignOutView';
+
+export const metadata = { title: 'Odhlasenie | ZoskaGram' };
 
 export default function SignOut() {
   return (
-    <>
-      <Typography variant="h4" gutterBottom>
-        Odhlásenie
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => signOut()}
-      >
-        Odhlásiť sa
-      </Button>
-    </>
+    <div>
+      <SignOutView/>
+    </div>
   );
 }

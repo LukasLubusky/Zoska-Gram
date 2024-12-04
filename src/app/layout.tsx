@@ -6,8 +6,8 @@ import Navbar from "@/components/NavBar";
 import AuthProvider from "../components/AuthProvider";
 
 export const metadata: Metadata = {
-  title: "ZoškaGram",
-  description: "Created by Lukáš Lubušký",
+  title: "SnapZoška",
+  description: "Created by me A. R. Petrovic",
 };
 
 export default function RootLayout({
@@ -23,8 +23,8 @@ export default function RootLayout({
             <main style={{ flexGrow: 1 }}>
               {children}
             </main>
-            <Navbar />
           </div>
+          <Navbar /> 
         </AuthProvider>
       </body>
     </html>

@@ -1,28 +1,13 @@
 // src/app/auth/prihlasenie/page.tsx
 
-"use client";  // Keep this as a client component
+import SignInView from '@/sections/SignInView';
 
-import Head from 'next/head';  // Use Head component to manage the title
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import { signIn } from 'next-auth/react';
+export const metadata = { title: 'Prihlásenie | RobertWeb' };
 
-export default function LogIn() {
+export default function SignIn() {
   return (
-    <>
-      <Head>
-        <title>Prihlásenie | ZoskaGram</title>  {/* Set the title here */}
-      </Head>
-      <Typography variant="h4" gutterBottom>
-        Prihlásenie
-      </Typography>
-      <Button 
-        variant="contained" 
-        color="primary" 
-        onClick={() => signIn('google')}
-      >
-        Sign in with Google
-      </Button>
-    </>
+    <div>
+      <SignInView />
+    </div>
   );
 }

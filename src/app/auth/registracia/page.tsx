@@ -1,25 +1,12 @@
 // src/app/auth/registracia/page.tsx
 
-"use client"; // Marks this file as a Client Component
+import SignUpView from '@/sections/SignUpView';
 
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import { signIn } from 'next-auth/react';
-
-// No metadata export here
+export const metadata = { title: 'registracia | RobertWeb' };
 export default function SignUp() {
   return (
-    <>
-      <Typography variant="h4" gutterBottom>
-        Registrácia
-      </Typography>
-      <Button 
-        variant="contained" 
-        color="primary" 
-        onClick={() => signIn('google')}
-      >
-        Sign up with Google
-      </Button>
-    </>
+    <div>
+      <SignUpView />
+    </div>
   );
 }
