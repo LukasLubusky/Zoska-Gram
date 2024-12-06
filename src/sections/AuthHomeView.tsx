@@ -3,6 +3,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 import Typography from '@mui/material/Typography';
 
 export default function AuthHomeView() {
@@ -12,9 +13,15 @@ export default function AuthHomeView() {
     return <Typography variant="h5" align="center">Loading...</Typography>;
   }
 
+  if (session) {
+    redirect('/prispevok'); 
+  }
+
   return (
-    <div style={{ textAlign: 'center', marginTop: '20%' }}>
-      <Typography variant="h4">Hello, {session?.user?.name}!</Typography>
-    </div>
+    <Typography variant="h5" align="center">
+      Redirecting...
+    </Typography>
+  
+
   );
 }
