@@ -2,8 +2,8 @@
 
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "./prisma"
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "./prisma"; 
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -20,7 +20,7 @@ export const authOptions: NextAuthOptions = {
     signOut: '/auth/odhlasenie',
   },
   callbacks: {
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+    async redirect({ url, baseUrl }) {
       return baseUrl || url;
     },
   },

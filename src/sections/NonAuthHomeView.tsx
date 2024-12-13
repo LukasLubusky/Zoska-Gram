@@ -2,19 +2,18 @@
 
 'use client';
 
-import { useSession } from 'next-auth/react';
+import React from 'react';
 import Typography from '@mui/material/Typography';
 
 export default function NonAuthHomeView() {
-  const { status } = useSession();
-
-  if (status === 'loading') {
-    return <Typography variant="h5" align="center">Loading...</Typography>;
-  }
-
   return (
-    <div style={{ textAlign: 'center', marginTop: '20%' }}>
-      <Typography variant="h4">Please log in to access personalized content.</Typography>
+    <div>
+      <Typography variant="h5" component="h1" gutterBottom>
+        Welcome to Our App
+      </Typography>
+      <Typography variant="body1">
+        Please sign in to access your personalized home page.
+      </Typography>
     </div>
   );
 }

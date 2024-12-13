@@ -1,7 +1,7 @@
 // src/app/(home)/page.tsx
 
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../api/auth/[...nextauth]/authOptions' ;
+import { authOptions } from '../api/auth/[...nextauth]/authOptions'; 
 import AuthHomeView from '@/sections/AuthHomeView';
 import NonAuthHomeView from '@/sections/NonAuthHomeView';
 

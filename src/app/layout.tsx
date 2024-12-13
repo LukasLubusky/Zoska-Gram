@@ -1,13 +1,14 @@
-// src/app/layout.tsx
+// src\app\layout.tsx
 
 import { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/NavBar";
-import AuthProvider from "../components/AuthProvider";
+import BottomNavbar from "@/components/NavBar";
+import AuthProvider from "@/components/AuthProvider";
+import ThemeProvider from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "SnapZoška",
-  description: "Created by me A. R. Petrovic",
+  description: "Created by me L. Lubusky",
 };
 
 export default function RootLayout({
@@ -19,14 +20,17 @@ export default function RootLayout({
     <html lang="sk">
       <body>
         <AuthProvider>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <main style={{ flexGrow: 1 }}>
-              {children}
-            </main>
-          </div>
-          <Navbar /> 
+          <ThemeProvider>
+            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+              <main style={{ flexGrow: 1 }}>
+                {children}
+              </main>
+            </div>
+            <BottomNavbar />
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>
   );
 }
+

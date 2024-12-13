@@ -1,13 +1,9 @@
-// src/app/auth/registracia/page.tsx
+// src/app/auth/odhlasenie/page.tsx
 
-import SignOutView from '@/sections/SignOutView';
+import SignOutView from "../../../sections/SignOutView";
 
-export const metadata = { title: 'Odhlasenie | ZoskaGram' };
+export const metadata = { title: "Odhlásenie | ZoškaSnap" };
 
-export default function SignOut() {
-  return (
-    <div>
-      <SignOutView/>
-    </div>
-  );
+export default function SignOutPage() {
+  return <SignOutView />;
 }

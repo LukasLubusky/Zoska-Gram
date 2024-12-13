@@ -1,13 +1,14 @@
 // src/components/AuthProvider.tsx
 
-"use client";  // Ensure this component runs on the client side
+"use client";
 
-import { SessionProvider } from 'next-auth/react';
+import React, { ReactNode } from 'react'
+import { SessionProvider } from 'next-auth/react'
 
-export default function AuthProvider({ children }: { children: React.ReactNode }) {
+const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
-    <SessionProvider>
-      {children}
-    </SessionProvider>
-  );
+    <SessionProvider>{children}</SessionProvider>
+  )
 }
+
+export default AuthProvider
