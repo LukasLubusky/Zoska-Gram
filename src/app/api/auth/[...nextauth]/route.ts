@@ -2,10 +2,7 @@
 
 import NextAuth from "next-auth";
 import { authOptions } from "./authOptions";
-import { NextApiRequest, NextApiResponse } from "next";
 
-const handler = (req: NextApiRequest, res: NextApiResponse) => {
-  return NextAuth(req, res, authOptions);
-};
+const handler = NextAuth(authOptions)
 
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST }

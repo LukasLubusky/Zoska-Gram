@@ -5,14 +5,12 @@
 import { useSession, signOut } from 'next-auth/react';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import { useTheme } from '@mui/material/styles';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 
 export default function SignOutView() {
   const { status } = useSession();
-  const theme = useTheme();
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/' });

@@ -10,11 +10,9 @@ import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
 import GoogleIcon from '@mui/icons-material/Google';
 
 export default function SignInView() {
-  const theme = useTheme();
   const router = useRouter();
 
   const handleSignIn = async () => {
