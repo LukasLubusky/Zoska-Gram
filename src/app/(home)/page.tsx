@@ -8,6 +8,7 @@ import NonAuthHomeView from '@/sections/NonAuthHomeView';
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
+  
   return (
     <div>
       {session ? <AuthHomeView /> : <NonAuthHomeView />}
