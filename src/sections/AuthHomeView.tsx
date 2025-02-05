@@ -1,22 +1,19 @@
-// src\sections\AuthHomeView.tsx
+// src/sections/AuthHomeView.tsx
 
 'use client';
 
-import React from 'react';
-import Typography from '@mui/material/Typography';
+import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 
 export default function AuthHomeView() {
   const { data: session } = useSession();
 
-  return (
-    <div>
-      <Typography variant="h5" component="h1" gutterBottom>
-        Welcome, {session?.user?.name || 'User'}!
-      </Typography>
-      <Typography variant="body1">
-        You are signed in. This is your personalized home page.
-      </Typography>
-    </div>
-  );
+  useEffect(() => {
+    if (session) {
+      redirect('/prispevok');
+    }
+  }, [session]);
+
+  return null;
 }

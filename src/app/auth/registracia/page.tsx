@@ -2,7 +2,7 @@
 
 import SignUpView from '@/sections/SignUpView';
 
-export const metadata = { title: 'registracia | ZoskaGram' };
+export const metadata = { title: 'Registrácia | ZoskaGram' };
 export default function SignUp() {
   return (
     <div>

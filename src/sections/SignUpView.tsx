@@ -13,9 +13,12 @@ import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Link from '@mui/material/Link';
+import { useTheme as useNextTheme } from "next-themes";
+
 
 export default function SignUpView() {
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const { theme } = useNextTheme();
   const router = useRouter();
 
   const handleSignUp = async () => {
@@ -100,6 +103,30 @@ export default function SignUpView() {
           >
             Register with Google
           </Button>
+          <br></br>
+          <Typography 
+            variant="body2"
+            sx={{ color: 'text.primary',
+                  marginTop: '20px'
+            }} // This ensures it respects MUI theme colors
+          >
+            Už máte účet?{' '}
+            <Link
+              href="/prihlasenie"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push('prihlasenie');
+              }}
+              sx={{
+                color: 'primary.main', // Uses theme-based color dynamically
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                '&:hover': { color: 'primary.dark' }, // Darker shade on hover
+              }}
+            >
+              Prihláste sa tu
+            </Link>
+          </Typography>
         </CardContent>
       </Card>
     </Box>

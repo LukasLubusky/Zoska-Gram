@@ -1,14 +1,9 @@
-// src\app\o-mne\page.tsx
+// src/app/auth/odhlasenie/page.tsx
 
-import Typography from '@mui/material/Typography';
-import  Container  from '@mui/material/Container';
+import AboutView from "../../../sections/AboutView";
 
-export const metadata = { title: 'O-mne | ZoskaGram'};
+export const metadata = { title: "O mne| INSTAGRAM " };
 
-export default function About() {
-  return (
-    <Container>
-      <Typography> O mne halo </Typography>
-    </Container>
-  );
+export default function AboutPage() {
+  return <AboutView />;
 }

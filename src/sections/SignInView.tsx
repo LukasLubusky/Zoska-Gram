@@ -11,16 +11,22 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import GoogleIcon from '@mui/icons-material/Google';
+import Link from '@mui/material/Link';
+import { useTheme as useNextTheme } from "next-themes";
 
 export default function SignInView() {
+  const { theme } = useNextTheme();
   const router = useRouter();
 
   const handleSignIn = async () => {
-    const result = await signIn('google', { callbackUrl: '/' });
+    const result = await signIn('google', { redirect: false, callbackUrl: '/' });
     if (result?.ok) {
       router.push('/');
+    } else {
+      console.error('Sign-in failed', result?.error);
     }
   };
+  
 
   return (
     <Box
@@ -71,6 +77,28 @@ export default function SignInView() {
           >
             Sign in with Google
           </Button>
+          <Typography 
+            variant="body2"
+            sx={{ color: 'text.primary',
+              marginTop: '20px'
+            }} // This ensures it respects MUI theme colors
+          >
+            Nemáte účet?{' '}
+            <Link
+              href="/registracia"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push('registracia');
+              }}
+              sx={{
+                color: theme === 'dark' ? '#90caf9' : '#1976d2',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+              }}
+            >
+              Registrujte sa tu
+            </Link>
+          </Typography>
         </CardContent>
       </Card>
     </Box>

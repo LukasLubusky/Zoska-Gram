@@ -1,14 +1,9 @@
 // src\app\podmienky\page.tsx
 
-import Typography from '@mui/material/Typography';
-import  Box   from '@mui/material/Box';
+import TermsView from "../../../sections/TermsView";
 
-export const metadata = { title: 'Podmienky | ZoskaGram'};
+export const metadata = { title: "Podmienky | ZoskaGram " };
 
-export default function TermsConditions() {
-  return (
-    <Box>
-      <Typography> Podmienky pouzivatela </Typography>
-    </Box>
-  );
+export default function TermsPage() {
+  return <TermsView />;
 }
