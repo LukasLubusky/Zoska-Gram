@@ -8,7 +8,7 @@ export const metadata = { title: 'Podmienky | RobertWeb'};
 export default function TermsConditions() {
   return (
     <Box>
-      <Typography> Podmienky pouzivatela </Typography>
+      <Typography> Podmienky pouzivania </Typography>
     </Box>
   );
 }
