@@ -13,12 +13,10 @@ import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Link from '@mui/material/Link';
-import { useTheme as useNextTheme } from "next-themes";
 
 
 export default function SignUpView() {
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const { theme } = useNextTheme();
   const router = useRouter();
 
   const handleSignUp = async () => {
