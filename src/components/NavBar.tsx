@@ -40,7 +40,7 @@ export default function BottomNavbar() {
         />
       ) : (
         <PersonIcon />
-      ), // Use PersonIcon here
+      ),
       href: "/profil",
     },
     { label: "Pridať", icon: <AddIcon />, href: "/pridat" },
@@ -53,7 +53,10 @@ export default function BottomNavbar() {
     { label: "Registrácia", icon: <PersonAddIcon />, href: "/auth/registracia" },
   ]
 
-  const navItems = [...commonItems, ...(session ? authenticatedItems : unauthenticatedItems)]
+  const navItems = [
+    ...commonItems,
+    ...(session ? authenticatedItems : unauthenticatedItems),
+  ]
 
   return (
     <Box sx={{ width: "100%", position: "fixed", bottom: 0, left: 0, right: 0 }}>
@@ -66,9 +69,9 @@ export default function BottomNavbar() {
         sx={{
           backgroundColor: "background.paper",
           "& .MuiBottomNavigationAction-root": {
-            color: mode === "dark" ? "pink.main" : "text.secondary",
+            color: "text.secondary", // non-selected items
             "&.Mui-selected": {
-              color: mode === "dark" ? "pink.main" : "primary.main",
+              color: "primary.main", // selected item
             },
           },
         }}
@@ -94,7 +97,7 @@ export default function BottomNavbar() {
             right: 16,
             top: "50%",
             transform: "translateY(-50%)",
-            color: mode === "dark" ? "pink.main" : "text.secondary",
+            color: mode === "dark" ? "primary.main" : "text.secondary",
           }}
           aria-label="toggle theme"
         >
@@ -104,5 +107,6 @@ export default function BottomNavbar() {
     </Box>
   )
 }
+
 
 

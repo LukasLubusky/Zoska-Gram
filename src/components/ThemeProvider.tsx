@@ -4,7 +4,7 @@
 
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
 import { createTheme, ThemeOptions } from '@mui/material/styles';
-import { ReactNode, useState, useMemo, useEffect, createContext, useContext } from 'react';
+import { ReactNode, useState, useMemo, createContext, useContext } from 'react';
 
 // Extend the Palette interface to include custom colors
 declare module '@mui/material/styles' {
@@ -32,21 +32,41 @@ const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
   palette: {
     mode,
     primary: {
-      main: mode === 'light' ? '#1976d2' : '#FF4081', // Change to pink in dark mode
+      main: mode === 'light' ? '#1976d2' : '#1565c0', // Blue in light, slightly darker blue in dark
     },
     secondary: {
-      main: mode === 'light' ? '#dc004e' : '#FF4081', // Change to pink in dark mode
+      main: mode === 'light' ? '#dc004e' : '#1565c0', // Matching dark mode secondary color
     },
     pink: {
-      main: '#FF4081', // Custom pink color
+      main: '#FF4081', // Keeping pink, but it's not used in primary anymore
     },
     background: {
-      default: mode === 'light' ? '#ffffff' : '#121212',
-      paper: mode === 'light' ? '#f5f5f5' : '#1e1e1e',
+      default: mode === 'light' ? '#ffffff' : '#121212', // White in light, dark gray in dark
+      paper: mode === 'light' ? '#f5f5f5' : '#1e1e1e', // Light gray for cards in light, darker in dark
+    },
+    text: {
+      primary: mode === 'light' ? '#000000' : '#ffffff', // Ensures text is readable
+      secondary: mode === 'light' ? '#444' : '#bbbbbb',
     },
   },
   typography: {
     fontFamily: 'Roboto, Arial, sans-serif',
+    h5: {
+      fontWeight: 600,
+    },
+    body1: {
+      fontSize: '1rem',
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '8px', // Rounded buttons
+          textTransform: 'none', // No uppercase transformation
+        },
+      },
+    },
   },
 });
 
@@ -55,12 +75,7 @@ type ThemeProviderProps = {
 };
 
 export default function ThemeProvider({ children }: ThemeProviderProps) {
-  const [isClient, setIsClient] = useState(false);
   const [mode, setMode] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const colorMode = useMemo(
     () => ({
@@ -72,15 +87,11 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     [mode]
   );
 
-  const themeOptions = useMemo(() => createTheme(getThemeOptions(mode)), [mode]);
-
-  if (!isClient) {
-    return <>{children}</>;
-  }
+  const theme = useMemo(() => createTheme(getThemeOptions(mode)), [mode]);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
-      <MuiThemeProvider theme={themeOptions}>
+      <MuiThemeProvider theme={theme}>
         <CssBaseline />
         {children}
       </MuiThemeProvider>
@@ -88,169 +99,4 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
   );
 }
 
-// // src/components/ThemeProvider.tsx
 
-// 'use client';
-
-// import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
-// import { createTheme, ThemeOptions } from '@mui/material/styles';
-// import { ReactNode, useState, useMemo, useEffect, createContext, useContext } from 'react';
-
-// // Extend the Palette interface to include custom colors
-// declare module '@mui/material/styles' {
-//   interface Palette {
-//     pink: Palette['primary'];
-//   }
-//   interface PaletteOptions {
-//     pink?: PaletteOptions['primary'];
-//   }
-// }
-
-// interface ColorModeContextType {
-//   toggleColorMode: () => void;
-//   mode: 'light' | 'dark';
-// }
-
-// const ColorModeContext = createContext<ColorModeContextType>({
-//   toggleColorMode: () => {},
-//   mode: 'light',
-// });
-
-// export const useColorMode = () => useContext(ColorModeContext);
-
-// const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
-//   palette: {
-//     mode,
-//     primary: {
-//       main: mode === 'light' ? '#1976d2' : '#90caf9',
-//     },
-//     secondary: {
-//       main: mode === 'light' ? '#dc004e' : '#f48fb1',
-//     },
-//     pink: {
-//       main: '#FF4081', // Custom pink color
-//     },
-//     background: {
-//       default: mode === 'light' ? '#ffffff' : '#121212',
-//       paper: mode === 'light' ? '#f5f5f5' : '#1e1e1e',
-//     },
-//   },
-//   typography: {
-//     fontFamily: 'Roboto, Arial, sans-serif',
-//   },
-// });
-
-// type ThemeProviderProps = {
-//   children: ReactNode;
-// };
-
-// export default function ThemeProvider({ children }: ThemeProviderProps) {
-//   const [isClient, setIsClient] = useState(false);
-//   const [mode, setMode] = useState<'light' | 'dark'>('light');
-
-//   useEffect(() => {
-//     setIsClient(true);
-//   }, []);
-
-//   const colorMode = useMemo(
-//     () => ({
-//       toggleColorMode: () => {
-//         setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
-//       },
-//       mode,
-//     }),
-//     [mode]
-//   );
-
-//   const themeOptions = useMemo(() => createTheme(getThemeOptions(mode)), [mode]);
-
-//   if (!isClient) {
-//     return <>{children}</>;
-//   }
-
-//   return (
-//     <ColorModeContext.Provider value={colorMode}>
-//       <MuiThemeProvider theme={themeOptions}>
-//         <CssBaseline />
-//         {children}
-//       </MuiThemeProvider>
-//     </ColorModeContext.Provider>
-//   );
-// }
-
-// // src/components/ThemeProvider.tsx
-
-// 'use client';
-
-// import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
-// import { createTheme, ThemeOptions } from '@mui/material/styles';
-// import { ReactNode, useState, useMemo, useEffect, createContext, useContext } from 'react';
-
-// interface ColorModeContextType {
-//   toggleColorMode: () => void;
-//   mode: 'light' | 'dark';
-// }
-
-// const ColorModeContext = createContext<ColorModeContextType>({
-//   toggleColorMode: () => {},
-//   mode: 'light',
-// });
-
-// export const useColorMode = () => useContext(ColorModeContext);
-
-// const getThemeOptions = (mode: 'light' | 'dark'): ThemeOptions => ({
-//   palette: {
-//     mode,
-//     primary: {
-//       main: mode === 'light' ? '#1976d2' : '#90caf9',
-//     },
-//     secondary: {
-//       main: mode === 'light' ? '#dc004e' : '#f48fb1',
-//     },
-//     background: {
-//       default: mode === 'light' ? '#ffffff' : '#121212',
-//       paper: mode === 'light' ? '#f5f5f5' : '#1e1e1e',
-//     },
-//   },
-//   typography: {
-//     fontFamily: 'Roboto, Arial, sans-serif',
-//   },
-// });
-
-// type ThemeProviderProps = {
-//   children: ReactNode;
-// };
-
-// export default function ThemeProvider({ children }: ThemeProviderProps) {
-//   const [isClient, setIsClient] = useState(false);
-//   const [mode, setMode] = useState<'light' | 'dark'>('light');
-
-//   useEffect(() => {
-//     setIsClient(true);
-//   }, []);
-
-//   const colorMode = useMemo(
-//     () => ({
-//       toggleColorMode: () => {
-//         setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
-//       },
-//       mode,
-//     }),
-//     [mode]
-//   );
-
-//   const themeOptions = useMemo(() => createTheme(getThemeOptions(mode)), [mode]);
-
-//   if (!isClient) {
-//     return <>{children}</>;
-//   }
-
-//   return (
-//     <ColorModeContext.Provider value={colorMode}>
-//       <MuiThemeProvider theme={themeOptions}>
-//         <CssBaseline />
-//         {children}
-//       </MuiThemeProvider>
-//     </ColorModeContext.Provider>
-//   );
-// }
