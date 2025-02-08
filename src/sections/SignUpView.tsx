@@ -2,21 +2,26 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Alert from '@mui/material/Alert';
-import Link from 'next/link';
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  FormControlLabel,
+  Checkbox,
+  Alert,
+  Snackbar,
+  Link,
+} from '@mui/material';
+import NextLink from 'next/link';
 
 export default function SignUpView() {
   const [agreed, setAgreed] = useState(false);
-  const [error, setError] = useState(false);
+  const [flashOpen, setFlashOpen] = useState(false);
 
   const handleSignUp = () => {
     if (!agreed) {
-      setError(true);
+      setFlashOpen(true);
       return;
     }
     signIn('google');
@@ -27,15 +32,17 @@ export default function SignUpView() {
       display="flex"
       justifyContent="center"
       alignItems="center"
-      height="100vh"
+      minHeight="100vh"
+      px={3}
     >
-      <Box
-        textAlign="center"
-        padding="30px"
-        boxShadow={3}
-        borderRadius="8px"
-        bgcolor="white"
-        maxWidth="500px"
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          borderRadius: 4,
+          maxWidth: 500,
+          textAlign: 'center',
+        }}
       >
         <Typography variant="h4" gutterBottom>
           Registrácia
@@ -45,51 +52,80 @@ export default function SignUpView() {
           control={
             <Checkbox
               checked={agreed}
-              onChange={(e) => {
-                setAgreed(e.target.checked);
-                setError(false);
-              }}
+              onChange={(e) => setAgreed(e.target.checked)}
               color="primary"
             />
           }
           label={
             <Typography variant="body2">
-              Súhlasím s <Link href="/gdpr" passHref><Typography component="span" color="primary" style={{ cursor: 'pointer', fontWeight: 'bold' }}>GDPR</Typography></Link> a {' '}
-              <Link href="/podmienky" passHref><Typography component="span" color="primary" style={{ cursor: 'pointer', fontWeight: 'bold' }}>Podmienkami používania</Typography></Link>
+              Súhlasím s{' '}
+              <Link
+                component={NextLink}
+                href="/gdpr"
+                sx={{
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                GDPR
+              </Link>{' '}
+              a{' '}
+              <Link
+                component={NextLink}
+                href="/podmienky"
+                sx={{
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                Podmienkami používania
+              </Link>
             </Typography>
           }
         />
-
-        {error && (
-          <Alert severity="error" style={{ marginTop: '10px' }}>
-            Musíte súhlasiť s podmienkami používania.
-          </Alert>
-        )}
 
         <Button
           variant="contained"
           color="primary"
           onClick={handleSignUp}
-          style={{ marginTop: '20px', opacity: agreed ? 1 : 0.5 }}
+          // The opacity is lowered when the checkbox isn't checked
+          sx={{ mt: 2, opacity: agreed ? 1 : 0.6 }}
         >
           Register with Google
         </Button>
 
-        <Typography variant="body2" color="textSecondary" style={{ marginTop: '20px' }}>
+        <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
           Máte už účet?{' '}
-          <Link href="/auth/prihlasenie" passHref>
-            <Typography
-              component="span"
-              color="primary"
-              style={{ cursor: 'pointer', fontWeight: 'bold' }}
-            >
-              Prihláste sa
-            </Typography>
+          <Link
+            component={NextLink}
+            href="/auth/prihlasenie"
+            sx={{
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            Prihláste sa
           </Link>
         </Typography>
-      </Box>
+      </Paper>
+
+      <Snackbar
+        open={flashOpen}
+        autoHideDuration={3000}
+        onClose={() => setFlashOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setFlashOpen(false)}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
+          Musíte súhlasiť s podmienkami používania.
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
+
 
 

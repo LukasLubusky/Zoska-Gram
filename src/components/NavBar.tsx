@@ -4,7 +4,6 @@ import * as React from "react"
 import Box from "@mui/material/Box"
 import BottomNavigation from "@mui/material/BottomNavigation"
 import BottomNavigationAction from "@mui/material/BottomNavigationAction"
-import IconButton from "@mui/material/IconButton"
 import HomeIcon from "@mui/icons-material/Home"
 import SearchIcon from "@mui/icons-material/Search"
 import AddIcon from "@mui/icons-material/Add"
@@ -14,7 +13,7 @@ import LoginIcon from "@mui/icons-material/Login"
 import InfoIcon from "@mui/icons-material/Info"
 import Brightness4Icon from "@mui/icons-material/Brightness4"
 import Brightness7Icon from "@mui/icons-material/Brightness7"
-import PersonIcon from "@mui/icons-material/Person" // Import missing PersonIcon
+import PersonIcon from "@mui/icons-material/Person"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
@@ -53,13 +52,19 @@ export default function BottomNavbar() {
     { label: "Registrácia", icon: <PersonAddIcon />, href: "/auth/registracia" },
   ]
 
-  const navItems = [
-    ...commonItems,
-    ...(session ? authenticatedItems : unauthenticatedItems),
-  ]
+  // Combine the common items with the ones depending on session status.
+  const navItems = [...commonItems, ...(session ? authenticatedItems : unauthenticatedItems)]
 
   return (
-    <Box sx={{ width: "100%", position: "fixed", bottom: 0, left: 0, right: 0 }}>
+    <Box
+      sx={{
+        width: "100%",
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+      }}
+    >
       <BottomNavigation
         showLabels
         value={value}
@@ -69,10 +74,12 @@ export default function BottomNavbar() {
         sx={{
           backgroundColor: "background.paper",
           "& .MuiBottomNavigationAction-root": {
-            color: "text.secondary", // non-selected items
+            color: "text.secondary",
             "&.Mui-selected": {
-              color: "primary.main", // selected item
+              color: "primary.main",
             },
+            minWidth: "auto",
+            flex: 1,
           },
         }}
       >
@@ -83,30 +90,33 @@ export default function BottomNavbar() {
             icon={item.icon}
             component={Link}
             href={item.href}
-            sx={{
-              minWidth: "auto",
-              padding: "6px 12px",
-              fontSize: "0.75rem",
-            }}
           />
         ))}
-        <IconButton
-          onClick={toggleColorMode}
-          sx={{
-            position: "absolute",
-            right: 16,
-            top: "50%",
-            transform: "translateY(-50%)",
-            color: mode === "dark" ? "primary.main" : "text.secondary",
+        {/* Theme toggle integrated as an action */}
+        <BottomNavigationAction
+          key="toggle-theme"
+          icon={mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
+          onClick={(event) => {
+            // Prevent any default behavior if needed.
+            event.preventDefault()
+            toggleColorMode()
           }}
-          aria-label="toggle theme"
-        >
-          {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
-        </IconButton>
+          sx={{
+            // Adjust styling as needed so that it matches the other actions.
+            minWidth: "auto",
+            flex: 1,
+          }}
+        />
       </BottomNavigation>
     </Box>
   )
 }
+
+
+
+
+
+
 
 
 

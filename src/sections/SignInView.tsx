@@ -1,37 +1,13 @@
 // // src/sections/SignInView.tsx
 
-// 'use client'; // Ensure this is a client component
-
-// import { signIn } from 'next-auth/react';
-// import Typography from '@mui/material/Typography';
-// import Button from '@mui/material/Button';
-
-
-// export default function SignInView() {
-//   return (
-//     <div style={{ textAlign: 'center', marginTop: '20%' }}>
-//       <Typography variant="h4" gutterBottom>
-//         Prihlásenie
-//       </Typography>
-//       <Button 
-//         variant="contained" 
-//         color="primary" 
-//         onClick={() => signIn('google')} // Trigger Google sign-in
-//         style={{ marginTop: '20px' }}
-//       >
-//         Sign in with Google
-//       </Button>
-//     </div>
-//   );
-// }
-
 'use client';
 
 import { signIn } from 'next-auth/react';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import Link from 'next/link';
+import MuiLink from '@mui/material/Link';
+import NextLink from 'next/link';
 
 export default function SignInView() {
   return (
@@ -39,14 +15,14 @@ export default function SignInView() {
       display="flex"
       justifyContent="center"
       alignItems="center"
-      height="100vh"
+      sx={{ height: '100vh' }}
     >
       <Box
         textAlign="center"
-        padding="30px"
+        p={3}
         boxShadow={3}
-        borderRadius="8px"
-        bgcolor="white"
+        borderRadius={2}
+        bgcolor="background.paper"  // Uses theme's background setting
         width="400px"
       >
         <Typography variant="h4" gutterBottom>
@@ -56,24 +32,24 @@ export default function SignInView() {
           variant="contained" 
           color="primary" 
           onClick={() => signIn('google')}
-          style={{ marginTop: '20px' }}
+          sx={{ mt: 2 }}  // Using theme spacing (mt: 2 = theme.spacing(2))
         >
           Sign in with Google
         </Button>
-        <Typography variant="body2" color="textSecondary" style={{ marginTop: '20px' }}>
+        <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
           Nemáte účet?{' '}
-          <Link href="/auth/registracia" passHref>
-            <Typography 
-              component="span" 
-              color="primary" 
-              style={{ cursor: 'pointer', fontWeight: 'bold' }}
-            >
-              Registrujte sa
-            </Typography>
-          </Link>
+          <MuiLink 
+            component={NextLink} 
+            href="/auth/registracia" 
+            underline="none"
+            sx={{ cursor: 'pointer', fontWeight: 'bold', color: 'primary.main' }}
+          >
+            Registrujte sa
+          </MuiLink>
         </Typography>
       </Box>
     </Box>
   );
 }
+
 
