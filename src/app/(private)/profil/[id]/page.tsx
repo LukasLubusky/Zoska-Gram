@@ -1,13 +1,9 @@
 // robertweb/src/app/profil/[id]/page.tsx
 
-import Typography from '@mui/material/Typography';
+import ProfileView from '@/sections/ProfileView';
 
 export const metadata = { title: 'Detail profilu | RobertWeb'};
 
-export default function ProfileDetail() {
-  return (
-
-      <Typography> Detail profilu </Typography>
-
-  );
+export default function ProfileDetail({ params }: { params: { id: string } }) {
+  return <ProfileView userId={params.id} />;
 }

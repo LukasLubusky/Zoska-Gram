@@ -13,6 +13,11 @@ const nextConfig = {
           hostname: "lh3.googleusercontent.com",
           pathname: "/a/**",
         },
+        {
+          protocol: "https",
+          hostname: "picsum.photos",
+          pathname: "/**",
+        },
       ],
     },
   }

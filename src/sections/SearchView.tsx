@@ -12,6 +12,7 @@ import {
   Typography,
   Container,
 } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: string;
@@ -20,6 +21,7 @@ interface User {
 }
 
 export default function SearchView() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -57,6 +59,10 @@ export default function SearchView() {
     setFilteredUsers(filtered);
   }, [searchQuery, users]);
 
+  const handleUserClick = (userId: string) => {
+    router.push(`/profil/${userId}`);
+  };
+
   return (
     <Container maxWidth="md">
       <Box sx={{ py: 4 }}>
@@ -86,7 +92,17 @@ export default function SearchView() {
         {!isLoading && !error && (
           <List>
             {filteredUsers.map((user) => (
-              <ListItem key={user.id}>
+              <ListItem
+                key={user.id}
+                onClick={() => handleUserClick(user.id)}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                  borderRadius: 1,
+                }}
+              >
                 <ListItemAvatar>
                   <Avatar src={user.image || '/default-avatar.png'} alt={user.name || 'User'} />
                 </ListItemAvatar>
