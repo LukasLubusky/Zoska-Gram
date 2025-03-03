@@ -33,6 +33,15 @@ interface Post {
   user: User;
 }
 
+// Helper function to ensure URLs have a protocol
+const getFullUrl = (url: string | null) => {
+  if (!url) return '/default-avatar.png'; // fallback if null
+  // If the url starts with 'http', assume it's correct.
+  if (url.startsWith('http')) return url;
+  // Otherwise, prepend 'https://'
+  return `https://${url}`;
+};
+
 export default function PostsView() {
   const [posts, setPosts] = useState<Post[]>([]);
 
@@ -69,7 +78,7 @@ export default function PostsView() {
             <CardHeader
               avatar={
                 <Avatar
-                  src={post.user.image || '/default-avatar.png'}
+                  src={getFullUrl(post.user.image)}
                   alt={post.user.name || 'Anonymous'}
                   sx={{ width: 40, height: 40 }}
                 />
@@ -131,6 +140,7 @@ export default function PostsView() {
     </Box>
   );
 }
+
 
 
 
