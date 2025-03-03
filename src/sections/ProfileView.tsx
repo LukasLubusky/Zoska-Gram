@@ -10,7 +10,16 @@ import {
   Skeleton,
   Card,
   CardMedia,
+  Button,
+  IconButton,
+  Stack,
+  Divider,
+  CardActions,
 } from '@mui/material';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 
 interface Post {
   id: string;
@@ -44,6 +53,43 @@ export default function ProfileView({ userId }: { userId: string }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
+
+  // Mock data for followers/following
+  const mockStats = {
+    followers: 1234,
+    following: 567,
+  };
+
+  const handleFollowClick = () => {
+    setIsFollowing(!isFollowing);
+  };
+
+  const handleLikeClick = (postId: string) => {
+    setLikedPosts(prev => {
+      const newLiked = new Set(prev);
+      if (newLiked.has(postId)) {
+        newLiked.delete(postId);
+      } else {
+        newLiked.add(postId);
+      }
+      return newLiked;
+    });
+  };
+
+  const handleSaveClick = (postId: string) => {
+    setSavedPosts(prev => {
+      const newSaved = new Set(prev);
+      if (newSaved.has(postId)) {
+        newSaved.delete(postId);
+      } else {
+        newSaved.add(postId);
+      }
+      return newSaved;
+    });
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -68,7 +114,7 @@ export default function ProfileView({ userId }: { userId: string }) {
 
   if (loading) {
     return (
-      <Container maxWidth="md">
+      <Container maxWidth="md" sx={{ mt: 8, pb: 4 }}>
         <Box sx={{ py: 4 }}>
           <Skeleton variant="circular" width={150} height={150} sx={{ mx: 'auto', mb: 2 }} />
           <Skeleton variant="text" height={40} width="50%" sx={{ mx: 'auto', mb: 1 }} />
@@ -87,7 +133,7 @@ export default function ProfileView({ userId }: { userId: string }) {
 
   if (error) {
     return (
-      <Container maxWidth="md">
+      <Container maxWidth="md" sx={{ mt: 8, pb: 4 }}>
         <Typography color="error" align="center" sx={{ py: 4 }}>
           {error}
         </Typography>
@@ -97,7 +143,7 @@ export default function ProfileView({ userId }: { userId: string }) {
 
   if (!user) {
     return (
-      <Container maxWidth="md">
+      <Container maxWidth="md" sx={{ mt: 8, pb: 4 }}>
         <Typography align="center" sx={{ py: 4 }}>
           Profile not found
         </Typography>
@@ -106,55 +152,88 @@ export default function ProfileView({ userId }: { userId: string }) {
   }
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="md" sx={{ mt: 8, pb: 4 }}>
       <Box sx={{ py: 4 }}>
         {/* Profile Header */}
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: 4, flexWrap: 'wrap' }}>
           <Avatar
             src={getFullUrl(user.image)}
             alt={user.name || 'User'}
-            sx={{ width: 150, height: 150, mx: 'auto', mb: 2 }}
+            sx={{ width: 150, height: 150 }}
           />
-          <Typography variant="h4" gutterBottom>
-            {user.name || 'Unnamed User'}
-          </Typography>
           
-          {user.profile && (
-            <Box sx={{ mb: 3 }}>
-              {user.profile.bio && (
-                <Typography variant="body1" color="text.secondary" gutterBottom>
-                  {user.profile.bio}
-                </Typography>
-              )}
-              {user.profile.location && (
-                <Typography variant="body2" color="text.secondary">
-                  📍 {user.profile.location}
-                </Typography>
-              )}
-              {user.profile.interests.length > 0 && (
-                <Box sx={{ mt: 1 }}>
-                  {user.profile.interests.map((interest, index) => (
-                    <Typography
-                      key={index}
-                      component="span"
-                      sx={{
-                        display: 'inline-block',
-                        m: 0.5,
-                        px: 1,
-                        py: 0.5,
-                        bgcolor: 'primary.light',
-                        borderRadius: 1,
-                        color: 'white',
-                      }}
-                    >
-                      {interest}
-                    </Typography>
-                  ))}
-                </Box>
-              )}
+          <Box sx={{ flex: 1, minWidth: 200 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <Typography variant="h4">
+                {user.name || 'Unnamed User'}
+              </Typography>
+              <Button
+                variant={isFollowing ? "outlined" : "contained"}
+                onClick={handleFollowClick}
+                sx={{ ml: 2 }}
+              >
+                {isFollowing ? 'Following' : 'Follow'}
+              </Button>
             </Box>
-          )}
+
+            <Stack
+              direction="row"
+              spacing={4}
+              sx={{ mb: 2 }}
+              divider={<Divider orientation="vertical" flexItem />}
+            >
+              <Box>
+                <Typography variant="h6">{user.posts.length}</Typography>
+                <Typography color="text.secondary">Posts</Typography>
+              </Box>
+              <Box>
+                <Typography variant="h6">{mockStats.followers}</Typography>
+                <Typography color="text.secondary">Followers</Typography>
+              </Box>
+              <Box>
+                <Typography variant="h6">{mockStats.following}</Typography>
+                <Typography color="text.secondary">Following</Typography>
+              </Box>
+            </Stack>
+
+            {user.profile && (
+              <Box>
+                {user.profile.bio && (
+                  <Typography variant="body1" gutterBottom>
+                    {user.profile.bio}
+                  </Typography>
+                )}
+                {user.profile.location && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    📍 {user.profile.location}
+                  </Typography>
+                )}
+                {user.profile.interests.length > 0 && (
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {user.profile.interests.map((interest, index) => (
+                      <Typography
+                        key={index}
+                        component="span"
+                        sx={{
+                          px: 1.5,
+                          py: 0.5,
+                          bgcolor: 'primary.light',
+                          borderRadius: 1,
+                          color: 'white',
+                          fontSize: '0.875rem',
+                        }}
+                      >
+                        {interest}
+                      </Typography>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+            )}
+          </Box>
         </Box>
+
+        <Divider sx={{ mb: 4 }} />
 
         {/* Posts Grid */}
         <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
@@ -174,6 +253,20 @@ export default function ProfileView({ userId }: { userId: string }) {
                     image={post.imageUrl}
                     alt={post.caption || 'Post image'}
                   />
+                  <CardActions sx={{ justifyContent: 'space-between' }}>
+                    <IconButton 
+                      onClick={() => handleLikeClick(post.id)}
+                      color={likedPosts.has(post.id) ? "primary" : "default"}
+                    >
+                      {likedPosts.has(post.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                    </IconButton>
+                    <IconButton 
+                      onClick={() => handleSaveClick(post.id)}
+                      color={savedPosts.has(post.id) ? "primary" : "default"}
+                    >
+                      {savedPosts.has(post.id) ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+                    </IconButton>
+                  </CardActions>
                 </Card>
               </Grid>
             ))
