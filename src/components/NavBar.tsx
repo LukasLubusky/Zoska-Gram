@@ -37,7 +37,7 @@ export default function BottomNavbar() {
 
   const authenticatedItems = [
     { label: "Hľadať", icon: <SearchIcon sx={{ color: pinkColor }} />, href: "/hladanie" },
-    { label: "Profily", icon: <PersonIcon sx={{ color: pinkColor }} />, href: "/profil" },
+    { label: "Profil", icon: <PersonIcon sx={{ color: pinkColor }} />, href: "/profil" },
     { label: "Pridať", icon: <AddIcon sx={{ color: pinkColor }} />, href: "/pridat" },
     { label: "Odhlásiť", icon: <LogoutIcon sx={{ color: pinkColor }} />, href: "/auth/odhlasenie" },
   ];

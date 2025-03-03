@@ -1,13 +1,31 @@
 // src\app\hladanie\page.tsx
 
-import Typography from '@mui/material/Typography';
+import { Container, Typography, Box, TextField } from '@mui/material';
+import { fetchAllUsers } from '@/app/actions/users';
+import UserCard from '@/components/UserCard';
 
-export const metadata = { title: 'Vyhladavanie | ZoskaGram'};
+export const metadata = { title: 'Vyhľadávanie | ZoskaGram' };
 
-export default function SearchBar() {
+export default async function SearchPage() {
+  const users = await fetchAllUsers();
+
   return (
-
-      <Typography> Vyhladavanie </Typography>
-
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Vyhľadávanie používateľov
+      </Typography>
+      
+      <Box sx={{ mt: 4 }}>
+        {users.map((user) => (
+          <UserCard
+            key={user.id}
+            id={user.id}
+            name={user.name}
+            image={user.image}
+            profile={user.profile}
+          />
+        ))}
+      </Box>
+    </Container>
   );
 }

@@ -1,13 +1,27 @@
 // src\app\profil\[id]\page.tsx
 
-import Typography from '@mui/material/Typography';
+import { fetchUserById } from '@/app/actions/users';
+import ProfileView from '@/components/ProfileView';
+import { notFound } from 'next/navigation';
 
-export const metadata = { title: 'Detail profilu | ZoskaGram'};
+export const generateMetadata = async ({ params }: { params: { id: string } }) => {
+  try {
+    const user = await fetchUserById(params.id);
+    return {
+      title: `${user.name || 'Profil používateľa'} | ZoskaGram`
+    };
+  } catch {
+    return {
+      title: 'Profil nebol nájdený | ZoskaGram'
+    };
+  }
+};
 
-export default function ProfileDetail() {
-  return (
-
-      <Typography> Detail profilu </Typography>
-
-  );
+export default async function ProfileDetail({ params }: { params: { id: string } }) {
+  try {
+    const user = await fetchUserById(params.id);
+    return <ProfileView user={user} />;
+  } catch {
+    notFound();
+  }
 }

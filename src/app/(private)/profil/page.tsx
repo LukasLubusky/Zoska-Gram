@@ -1,13 +1,16 @@
 // src\app\profil\page.tsx
 
-import Typography from '@mui/material/Typography';
+import { fetchCurrentUser } from '@/app/actions/users';
+import ProfileView from '@/components/ProfileView';
+import { redirect } from 'next/navigation';
 
-export const metadata = { title: 'Zoznam profilov | ZoskaGram'};
+export const metadata = { title: 'Môj profil | ZoskaGram'};
 
-export default function ProfileList() {
-  return (
-
-      <Typography> Zoznam profilov </Typography>
-
-  );
+export default async function ProfilePage() {
+  try {
+    const user = await fetchCurrentUser();
+    return <ProfileView user={user} />;
+  } catch (error) {
+    redirect('/auth/prihlasenie');
+  }
 }
