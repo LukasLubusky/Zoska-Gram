@@ -1,6 +1,6 @@
 // src\app\hladanie\page.tsx
 
-import { Container, Typography, Box, TextField } from '@mui/material';
+import { Container, Typography, Box } from '@mui/material';
 import { fetchAllUsers } from '@/app/actions/users';
 import UserCard from '@/components/UserCard';
 
