@@ -80,8 +80,12 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  posts     Post[]
-  profile   Profile?
+  
+  posts        Post[]
+  profile      Profile?
+  likes        Like[]
+  comments     Comment[]
+  commentLikes CommentLike[]
 }
 
 model Post {
@@ -92,7 +96,9 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes      Like[]
+  comments   Comment[]
 }
 
 model Profile {
@@ -105,5 +111,65 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  followers        Follow[] @relation("Following")
+  following        Follow[] @relation("Followers")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post         Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes        CommentLike[]
+
+  @@index([userId])
+  @@index([postId])
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String
+  commentId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([commentId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  Profile @relation("Following", fields: [followerId], references: [id])
+  following Profile @relation("Followers", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }

@@ -1,13 +1,18 @@
 // robertweb/src/app/profil/page.tsx
 
-import Typography from '@mui/material/Typography';
+import ProfileView from '@/sections/ProfileView';
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions';
 
-export const metadata = { title: 'Zoznam profilov | RobertWeb'};
+export const metadata = { title: 'Môj profil | RobertWeb' };
 
-export default function ProfileList() {
-  return (
+export default async function Profile() {
+  const session = await getServerSession(authOptions);
 
-      <Typography> Zoznam profilov </Typography>
+  if (!session?.user) {
+    redirect('/auth/prihlasenie');
+  }
 
-  );
+  return <ProfileView userId={session.user.id} isOwnProfile={true} />;
 }

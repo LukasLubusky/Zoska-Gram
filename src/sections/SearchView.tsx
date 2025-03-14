@@ -13,6 +13,7 @@ import {
   Container,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 interface User {
   id: string;
@@ -22,6 +23,7 @@ interface User {
 
 export default function SearchView() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -38,8 +40,34 @@ export default function SearchView() {
           throw new Error('Failed to fetch users');
         }
         const data = await response.json();
-        setUsers(data);
-        setFilteredUsers(data);
+        
+        // Organize users by first letter of name
+        const organizedUsers = new Map<string, User[]>();
+        data.forEach((user: User) => {
+          const firstLetter = user.name?.charAt(0)?.toUpperCase() || '?';
+          if (!organizedUsers.has(firstLetter)) {
+            organizedUsers.set(firstLetter, []);
+          }
+          organizedUsers.get(firstLetter)?.push(user);
+        });
+        
+        // Convert the Map to an array and sort it
+        const organizedUsersArray = Array.from(organizedUsers.entries())
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .flatMap(entry => entry[1]);
+
+        // Move current user to the front if they exist
+        const userId = session?.user?.id;
+        if (userId) {
+          const currentUserIndex = organizedUsersArray.findIndex(user => user.id === userId);
+          if (currentUserIndex !== -1) {
+            const [currentUser] = organizedUsersArray.splice(currentUserIndex, 1);
+            organizedUsersArray.unshift(currentUser);
+          }
+        }
+        
+        setUsers(organizedUsersArray);
+        setFilteredUsers(organizedUsersArray);
       } catch (error) {
         console.error('Error fetching users:', error);
         setError('Failed to load users. Please try again later.');
@@ -49,10 +77,14 @@ export default function SearchView() {
     };
 
     fetchUsers();
-  }, []);
+  }, [session?.user?.id]);
 
   // Filter users based on search query
   useEffect(() => {
+    if (searchQuery === '') {
+      setFilteredUsers(users); // Keep original order when no search
+      return;
+    }
     const filtered = users.filter((user) =>
       user.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -60,7 +92,11 @@ export default function SearchView() {
   }, [searchQuery, users]);
 
   const handleUserClick = (userId: string) => {
-    router.push(`/profil/${userId}`);
+    if (userId === session?.user?.id) {
+      router.push('/profil'); // Go to /profil for own profile
+    } else {
+      router.push(`/profil/${userId}`); // Go to /profil/[id] for other profiles
+    }
   };
 
   return (
@@ -101,12 +137,19 @@ export default function SearchView() {
                     backgroundColor: 'action.hover',
                   },
                   borderRadius: 1,
+                  // Highlight current user's entry
+                  ...(user.id === session?.user?.id && {
+                    backgroundColor: 'action.selected',
+                  }),
                 }}
               >
                 <ListItemAvatar>
                   <Avatar src={user.image || '/default-avatar.png'} alt={user.name || 'User'} />
                 </ListItemAvatar>
-                <ListItemText primary={user.name || 'Unnamed User'} />
+                <ListItemText 
+                  primary={user.name || 'Unnamed User'} 
+                  secondary={user.id === session?.user?.id ? '(You)' : ''}
+                />
               </ListItem>
             ))}
             {filteredUsers.length === 0 && (

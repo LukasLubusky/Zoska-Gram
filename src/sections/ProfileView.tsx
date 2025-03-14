@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   Box,
   Container,
@@ -15,11 +16,27 @@ import {
   Stack,
   Divider,
   CardActions,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
+import CommentIcon from '@mui/icons-material/Comment';
+import SendIcon from '@mui/icons-material/Send';
+import { togglePostLike, checkPostLike } from '@/app/action/likes';
+import { toggleFollow, checkFollowing, getFollowersCount, getFollowingCount } from '@/app/action/follows';
+import { createComment, getPostComments, toggleCommentLike, checkCommentLike } from '@/app/action/comments';
+import EditIcon from '@mui/icons-material/Edit';
+import { useRouter } from 'next/navigation';
 
 interface Post {
   id: string;
@@ -42,6 +59,35 @@ interface User {
   posts: Post[];
 }
 
+interface Comment {
+  id: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  postId: string;
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    emailVerified: Date | null;
+    image: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  likes?: {
+    userId: string;
+    createdAt: Date;
+    id: string;
+    commentId: string;
+  }[];
+}
+
+interface ProfileViewProps {
+  userId: string;
+  isOwnProfile?: boolean;
+}
+
 // Helper function to ensure URLs have a protocol
 const getFullUrl = (url: string | null) => {
   if (!url) return '/default-avatar.png'; // fallback if null
@@ -49,34 +95,93 @@ const getFullUrl = (url: string | null) => {
   return `https://${url}`;
 };
 
-export default function ProfileView({ userId }: { userId: string }) {
+// Helper function to ensure comment object matches our interface
+const ensureCommentShape = (comment: Partial<Comment>): Comment => {
+  if (!comment.id || !comment.content || !comment.userId || !comment.postId) {
+    throw new Error('Missing required comment fields');
+  }
+  
+  return {
+    id: comment.id,
+    content: comment.content,
+    userId: comment.userId,
+    postId: comment.postId,
+    user: {
+      id: comment.user?.id || '',
+      name: comment.user?.name || null,
+      email: comment.user?.email || '',
+      emailVerified: comment.user?.emailVerified || null,
+      image: comment.user?.image || null,
+      createdAt: new Date(comment.user?.createdAt || Date.now()),
+      updatedAt: new Date(comment.user?.updatedAt || Date.now()),
+    },
+    createdAt: new Date(comment.createdAt || Date.now()),
+    updatedAt: new Date(comment.updatedAt || Date.now()),
+    likes: comment.likes,
+  };
+};
+
+export default function ProfileView({ userId, isOwnProfile = false }: ProfileViewProps) {
+  const { data: session } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  
+  // Comment state
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [currentPostId, setCurrentPostId] = useState('');
+  const [commentText, setCommentText] = useState('');
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentLikes, setCommentLikes] = useState<Set<string>>(new Set());
 
-  // Mock data for followers/following
-  const mockStats = {
-    followers: 1234,
-    following: 567,
+  const router = useRouter();
+
+  // Get the current user ID from the session
+  useEffect(() => {
+    if (session?.user?.id) {
+      setCurrentUserId(session.user.id);
+    }
+  }, [session]);
+
+  const handleFollowClick = async () => {
+    try {
+      console.log("Attempting to toggle follow for user:", userId);
+      const result = await toggleFollow(currentUserId, userId);
+      console.log("Follow toggled successfully:", result);
+      setIsFollowing(result);
+      
+      // Update followers count
+      const newCount = await getFollowersCount(userId);
+      setFollowersCount(newCount);
+    } catch (error) {
+      console.error('Error in handleFollowClick:', error);
+    }
   };
 
-  const handleFollowClick = () => {
-    setIsFollowing(!isFollowing);
-  };
-
-  const handleLikeClick = (postId: string) => {
-    setLikedPosts(prev => {
-      const newLiked = new Set(prev);
-      if (newLiked.has(postId)) {
-        newLiked.delete(postId);
-      } else {
-        newLiked.add(postId);
-      }
-      return newLiked;
-    });
+  const handleLikeClick = async (postId: string) => {
+    try {
+      console.log("Attempting to toggle like for post:", postId);
+      const result = await togglePostLike(currentUserId, postId);
+      console.log("Like toggled successfully:", result);
+      
+      setLikedPosts(prev => {
+        const newLiked = new Set(prev);
+        if (result) {
+          newLiked.add(postId);
+        } else {
+          newLiked.delete(postId);
+        }
+        return newLiked;
+      });
+    } catch (error) {
+      console.error('Error in handleLikeClick:', error);
+    }
   };
 
   const handleSaveClick = (postId: string) => {
@@ -90,6 +195,84 @@ export default function ProfileView({ userId }: { userId: string }) {
       return newSaved;
     });
   };
+  
+  const handleCommentClick = async (postId: string) => {
+    setCurrentPostId(postId);
+    await loadComments(postId);
+    setCommentDialogOpen(true);
+  };
+  
+  const loadComments = async (postId: string) => {
+    try {
+      console.log("Loading comments for post:", postId);
+      const postComments = await getPostComments(postId);
+      console.log("Comments loaded:", postComments?.length || 0);
+      setComments((postComments || []).map(ensureCommentShape));
+      
+      const likedCommentIds = new Set<string>();
+      for (const comment of postComments || []) {
+        const isLiked = await checkCommentLike(currentUserId, comment.id);
+        if (isLiked) {
+          likedCommentIds.add(comment.id);
+        }
+      }
+      setCommentLikes(likedCommentIds);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    }
+  };
+  
+  const handleCommentSubmit = async () => {
+    if (!commentText.trim() || !currentPostId) {
+      console.log("Missing comment text or post ID");
+      return;
+    }
+    
+    try {
+      console.log("Attempting to create comment for post:", currentPostId);
+      const newComment = await createComment(currentUserId, currentPostId, commentText);
+      console.log("Comment created successfully:", newComment);
+      
+      if (newComment) {
+        const commentWithUser = {
+          ...newComment,
+          user: {
+            id: session?.user?.id || '',
+            name: session?.user?.name || null,
+            email: session?.user?.email || '',
+            emailVerified: null,
+            image: session?.user?.image || null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }
+        };
+        setComments(prev => [ensureCommentShape(commentWithUser), ...prev]);
+        setCommentText('');
+      }
+    } catch (error) {
+      console.error('Error in handleCommentSubmit:', error);
+    }
+  };
+  
+  const handleCommentLike = async (commentId: string) => {
+    try {
+      console.log("Toggling like for comment:", commentId);
+      const result = await toggleCommentLike(currentUserId, commentId);
+      console.log("Comment like result:", result);
+      
+      setCommentLikes(prev => {
+        const newLiked = new Set(prev);
+        if (result) {
+          newLiked.add(commentId);
+        } else {
+          newLiked.delete(commentId);
+        }
+        return newLiked;
+      });
+    } catch (error) {
+      console.error('Error toggling comment like:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -101,6 +284,28 @@ export default function ProfileView({ userId }: { userId: string }) {
         }
         const data = await response.json();
         setUser(data);
+        
+        // Check if current user is following this profile
+        if (currentUserId) {
+          const isFollowing = await checkFollowing(currentUserId, userId);
+          setIsFollowing(isFollowing);
+          
+          // Check which posts the current user has liked
+          const likedPostIds = new Set<string>();
+          for (const post of data.posts || []) {
+            const isLiked = await checkPostLike(currentUserId, post.id);
+            if (isLiked) {
+              likedPostIds.add(post.id);
+            }
+          }
+          setLikedPosts(likedPostIds);
+        }
+        
+        // Get followers and following counts
+        const followers = await getFollowersCount(userId);
+        const following = await getFollowingCount(userId);
+        setFollowersCount(followers);
+        setFollowingCount(following);
       } catch (err) {
         console.error('Error fetching profile:', err);
         setError('Failed to load profile. Please try again later.');
@@ -109,8 +314,10 @@ export default function ProfileView({ userId }: { userId: string }) {
       }
     };
 
-    fetchProfile();
-  }, [userId]);
+    if (userId) {
+      fetchProfile();
+    }
+  }, [userId, currentUserId]);
 
   if (loading) {
     return (
@@ -167,13 +374,24 @@ export default function ProfileView({ userId }: { userId: string }) {
               <Typography variant="h4">
                 {user.name || 'Unnamed User'}
               </Typography>
-              <Button
-                variant={isFollowing ? "outlined" : "contained"}
-                onClick={handleFollowClick}
-                sx={{ ml: 2 }}
-              >
-                {isFollowing ? 'Following' : 'Follow'}
-              </Button>
+              {isOwnProfile ? (
+                <Button
+                  variant="contained"
+                  startIcon={<EditIcon />}
+                  sx={{ ml: 2 }}
+                  onClick={() => router.push(`/profil/${userId}/edit`)}
+                >
+                  Edit Profile
+                </Button>
+              ) : (
+                <Button
+                  variant={isFollowing ? "outlined" : "contained"}
+                  onClick={handleFollowClick}
+                  sx={{ ml: 2 }}
+                >
+                  {isFollowing ? 'Following' : 'Follow'}
+                </Button>
+              )}
             </Box>
 
             <Stack
@@ -187,11 +405,11 @@ export default function ProfileView({ userId }: { userId: string }) {
                 <Typography color="text.secondary">Posts</Typography>
               </Box>
               <Box>
-                <Typography variant="h6">{mockStats.followers}</Typography>
+                <Typography variant="h6">{followersCount}</Typography>
                 <Typography color="text.secondary">Followers</Typography>
               </Box>
               <Box>
-                <Typography variant="h6">{mockStats.following}</Typography>
+                <Typography variant="h6">{followingCount}</Typography>
                 <Typography color="text.secondary">Following</Typography>
               </Box>
             </Stack>
@@ -254,12 +472,20 @@ export default function ProfileView({ userId }: { userId: string }) {
                     alt={post.caption || 'Post image'}
                   />
                   <CardActions sx={{ justifyContent: 'space-between' }}>
-                    <IconButton 
-                      onClick={() => handleLikeClick(post.id)}
-                      color={likedPosts.has(post.id) ? "primary" : "default"}
-                    >
-                      {likedPosts.has(post.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                    </IconButton>
+                    <Box>
+                      <IconButton 
+                        onClick={() => handleLikeClick(post.id)}
+                        color={likedPosts.has(post.id) ? "primary" : "default"}
+                      >
+                        {likedPosts.has(post.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                      </IconButton>
+                      <IconButton 
+                        onClick={() => handleCommentClick(post.id)}
+                        color="default"
+                      >
+                        <CommentIcon />
+                      </IconButton>
+                    </Box>
                     <IconButton 
                       onClick={() => handleSaveClick(post.id)}
                       color={savedPosts.has(post.id) ? "primary" : "default"}
@@ -279,6 +505,78 @@ export default function ProfileView({ userId }: { userId: string }) {
           )}
         </Grid>
       </Box>
+      
+      {/* Comments Dialog */}
+      <Dialog 
+        open={commentDialogOpen} 
+        onClose={() => setCommentDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Comments</DialogTitle>
+        <DialogContent dividers>
+          <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+            {comments.length > 0 ? (
+              comments.map((comment) => (
+                <ListItem 
+                  key={comment.id}
+                  alignItems="flex-start"
+                  secondaryAction={
+                    <IconButton 
+                      edge="end" 
+                      onClick={() => handleCommentLike(comment.id)}
+                      color={commentLikes.has(comment.id) ? "primary" : "default"}
+                    >
+                      {commentLikes.has(comment.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                    </IconButton>
+                  }
+                >
+                  <ListItemAvatar>
+                    <Avatar src={getFullUrl(comment.user?.image)} alt={comment.user?.name || 'User'} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={comment.user?.name || 'Anonymous'}
+                    secondary={
+                      <>
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          color="text.primary"
+                        >
+                          {comment.content}
+                        </Typography>
+                        {' — '}
+                        {new Date(comment.createdAt).toLocaleDateString()}
+                      </>
+                    }
+                  />
+                </ListItem>
+              ))
+            ) : (
+              <ListItem>
+                <ListItemText primary="No comments yet. Be the first to comment!" />
+              </ListItem>
+            )}
+          </List>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Add a comment..."
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            size="small"
+          />
+          <IconButton 
+            color="primary" 
+            onClick={handleCommentSubmit}
+            disabled={!commentText.trim()}
+          >
+            <SendIcon />
+          </IconButton>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

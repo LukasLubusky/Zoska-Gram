@@ -28,7 +28,7 @@ export default function BottomNavbar() {
   const authenticatedItems = [
     { label: "Hľadať", icon: <SearchIcon />, href: "/hladanie" },
     {
-      label: "Profily",
+      label: "Profil",
       icon: session?.user?.image ? (
         <Image
           src={session.user.image || "/placeholder.svg"}

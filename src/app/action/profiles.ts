@@ -39,3 +39,38 @@ export const fetchProfileByUserId = async (userId: string) => {
     throw new Error("Could not fetch profile");
   }
 };
+
+// Ensure a profile exists for a user, creating one if it doesn't
+export const ensureProfileExists = async (userId: string) => {
+  try {
+    // First check if the user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    // Then check if the profile exists
+    let profile = await prisma.profile.findUnique({
+      where: { userId },
+    });
+    
+    if (!profile) {
+      // Create a new profile if it doesn't exist
+      profile = await prisma.profile.create({
+        data: {
+          userId,
+          interests: [],
+        },
+      });
+      console.log(`Created new profile for user ${userId}`);
+    }
+    
+    return profile;
+  } catch (error) {
+    console.error("Error ensuring profile exists:", error);
+    throw new Error("Could not ensure profile exists");
+  }
+};
