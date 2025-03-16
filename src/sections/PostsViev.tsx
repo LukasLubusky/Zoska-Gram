@@ -1,38 +1,17 @@
 'use client';
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { fetchPosts, deletePost } from '@/app/action/posts';
 import { togglePostLike, checkPostLikesBatch, getPostLikesCountBatch } from '@/app/action/likes';
 import { createComment, getPostComments, toggleCommentLike, checkCommentLike } from '@/app/action/comments';
+import { toggleSavePost, checkSavedPostsBatch } from '@/app/action/saves';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
-  CardMedia,
   Grid,
-  CardHeader,
-  Avatar,
-  IconButton,
-  CardActions,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Menu,
-  MenuItem,
 } from '@mui/material';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import CommentIcon from '@mui/icons-material/Comment';
-import SendIcon from '@mui/icons-material/Send';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import PostView from '@/components/PostView';
 
 interface User {
   id: string;
@@ -78,15 +57,6 @@ interface Comment {
   }[];
 }
 
-// Helper function to ensure URLs have a protocol
-const getFullUrl = (url: string | null) => {
-  if (!url) return '/default-avatar.png'; // fallback if null
-  // If the url starts with 'http', assume it's correct.
-  if (url.startsWith('http')) return url;
-  // Otherwise, prepend 'https://'
-  return `https://${url}`;
-};
-
 // Helper function to ensure comment object matches our interface
 const ensureCommentShape = (comment: Partial<Comment> & { id: string; content: string; userId: string; postId: string }): Comment => {
   return {
@@ -115,18 +85,12 @@ export default function PostsView() {
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [likeCounts, setLikeCounts] = useState<Map<string, number>>(new Map());
+  const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
   
   // Comment state
-  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [currentPostId, setCurrentPostId] = useState('');
-  const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentLikes, setCommentLikes] = useState<Set<string>>(new Set());
-
-  // Menu state
-  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
-  const [menuPostId, setMenuPostId] = useState<string>('');
-  const isMenuOpen = Boolean(menuAnchorEl);
 
   // Get the current user ID from the session
   useEffect(() => {
@@ -155,15 +119,17 @@ export default function PostsView() {
         if (currentUserId && fetchedPosts.length > 0) {
           const postIds = fetchedPosts.map(post => post.id);
           
-          // Load likes in parallel
-          type LikesResult = [Set<string>, Map<string, number>];
-          const [likedPostIds, postLikeCounts] = await Promise.all([
+          // Load likes and saves in parallel
+          type LikesResult = [Set<string>, Map<string, number>, Set<string>];
+          const [likedPostIds, postLikeCounts, savedPostIds] = await Promise.all([
             checkPostLikesBatch(currentUserId, postIds),
-            getPostLikesCountBatch(postIds)
+            getPostLikesCountBatch(postIds),
+            checkSavedPostsBatch(currentUserId, postIds)
           ]) as LikesResult;
 
           setLikedPosts(likedPostIds);
           setLikeCounts(postLikeCounts);
+          setSavedPosts(savedPostIds);
         }
       } catch (error) {
         console.error('Error loading posts and status:', error);
@@ -275,18 +241,17 @@ export default function PostsView() {
   const handleCommentClick = useCallback(async (postId: string) => {
     setCurrentPostId(postId);
     await loadComments(postId);
-    setCommentDialogOpen(true);
   }, [loadComments]);
   
-  const handleCommentSubmit = async () => {
-    if (!commentText.trim() || !currentPostId || !session?.user) {
+  const handleCommentSubmit = async (content: string) => {
+    if (!content.trim() || !currentPostId || !session?.user) {
       console.log("Missing comment text, post ID, or user session");
       return;
     }
     
     try {
       console.log("Attempting to create comment for post:", currentPostId);
-      const newComment = await createComment(currentUserId, currentPostId, commentText);
+      const newComment = await createComment(currentUserId, currentPostId, content);
       console.log("Comment created successfully:", newComment);
       
       if (newComment) {
@@ -304,7 +269,6 @@ export default function PostsView() {
           }
         };
         setComments(prev => [ensureCommentShape(commentWithUser), ...prev]);
-        setCommentText('');
       }
     } catch (error) {
       console.error('Error in handleCommentSubmit:', error);
@@ -331,111 +295,71 @@ export default function PostsView() {
     }
   };
 
-  // Memoize rendered posts for performance
-  const renderedPosts = useMemo(
-    () =>
-      posts.map((post) => (
-        <Grid
-          item
-          xs={12}
-          key={post.id}
-          sx={{ display: 'flex', justifyContent: 'center' }}
-        >
-          <Card
-            sx={{
-              width: { xs: '90%', sm: '80%', md: '50%', lg: '40%' },
-              boxShadow: 3,
-              borderRadius: 2,
-              overflow: 'hidden',
-            }}
-          >
-            <CardHeader
-              avatar={
-                <Avatar
-                  src={getFullUrl(post.user.image)}
-                  alt={post.user.name || 'Anonymous'}
-                  sx={{ width: 40, height: 40 }}
-                />
-              }
-              title={post.user.name || 'Anonymous'}
-              subheader={`Posted on ${new Date(
-                post.createdAt
-              ).toLocaleDateString()}`}
-              action={
-                post.userId === currentUserId && (
-                  <IconButton onClick={(e) => handleMenuOpen(e, post.id)}>
-                    <MoreVertIcon />
-                  </IconButton>
-                )
-              }
-              sx={{ bgcolor: 'background.paper', p: 1 }}
-            />
-            <CardMedia
-              component="img"
-              sx={{
-                height: { xs: 200, sm: 250, md: 300, lg: 350 },
-                objectFit: 'cover',
-              }}
-              image={post.imageUrl}
-              alt="Post image"
-            />
-            <CardContent sx={{ p: 2 }}>
-              {post.caption && (
-                <Typography
-                  variant="body1"
-                  color="text.primary"
-                  sx={{ mb: 1, fontStyle: 'italic' }}
-                >
-                  {post.caption}
-                </Typography>
-              )}
-              <Typography variant="caption" color="text.secondary">
-                {`Posted by ${post.user.name || 'Anonymous'}`}
-              </Typography>
-            </CardContent>
-            <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
-              <Box>
-                <IconButton 
-                  onClick={() => handleLikeClick(post.id)}
-                  color={likedPosts.has(post.id) ? "primary" : "default"}
-                >
-                  {likedPosts.has(post.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                </IconButton>
-                <Typography variant="body2" color="text.secondary" component="span" sx={{ ml: 1 }}>
-                  {likeCounts.get(post.id) || 0} likes
-                </Typography>
-                <IconButton 
-                  onClick={() => handleCommentClick(post.id)}
-                  color="default"
-                >
-                  <CommentIcon />
-                </IconButton>
-              </Box>
-            </CardActions>
-          </Card>
-        </Grid>
-      )),
-    [posts, likedPosts, likeCounts, handleLikeClick, handleCommentClick, currentUserId]
-  );
+  const handleSaveClick = async (postId: string) => {
+    if (!session) {
+      console.error("No session found");
+      return;
+    }
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, postId: string) => {
-    setMenuAnchorEl(event.currentTarget);
-    setMenuPostId(postId);
+    if (!currentUserId) {
+      console.error("No user ID found in session:", session);
+      return;
+    }
+
+    try {
+      const isCurrentlySaved = savedPosts.has(postId);
+
+      // Optimistic update
+      setSavedPosts(prev => {
+        const newSaved = new Set(prev);
+        if (isCurrentlySaved) {
+          newSaved.delete(postId);
+        } else {
+          newSaved.add(postId);
+        }
+        return newSaved;
+      });
+
+      // Actual API call
+      console.log("Attempting to toggle save for post:", postId, "by user:", currentUserId);
+      const result = await toggleSavePost(currentUserId, postId);
+      console.log("Save result:", result);
+      
+      // If the API call fails, revert the optimistic update
+      if (result !== !isCurrentlySaved) {
+        setSavedPosts(prev => {
+          const newSaved = new Set(prev);
+          if (isCurrentlySaved) {
+            newSaved.add(postId);
+          } else {
+            newSaved.delete(postId);
+          }
+          return newSaved;
+        });
+      }
+    } catch (error) {
+      console.error('Error in handleSaveClick:', error);
+      // Revert optimistic update on error
+      const isCurrentlySaved = savedPosts.has(postId);
+      setSavedPosts(prev => {
+        const newSaved = new Set(prev);
+        if (isCurrentlySaved) {
+          newSaved.add(postId);
+        } else {
+          newSaved.delete(postId);
+        }
+        return newSaved;
+      });
+    }
   };
 
-  const handleMenuClose = () => {
-    setMenuAnchorEl(null);
-    setMenuPostId('');
-  };
-
-  const handleDeletePost = async () => {
-    if (!menuPostId || !currentUserId) return;
+  const handleDeletePost = async (postId: string) => {
+    if (!currentUserId) return;
     
     try {
-      await deletePost(menuPostId, currentUserId);
+      await deletePost(postId, currentUserId);
       // Remove the post from the local state
-      setPosts(prev => prev.filter(post => post.id !== menuPostId));
-      handleMenuClose();
+      setPosts(prev => prev.filter(post => post.id !== postId));
     } catch (error) {
       console.error('Error deleting post:', error);
     }
@@ -458,99 +382,40 @@ export default function PostsView() {
         Posts
       </Typography>
       <Grid container spacing={3} justifyContent="center">
-        {renderedPosts}
-      </Grid>
-      
-      {/* Comments Dialog */}
-      <Dialog 
-        open={commentDialogOpen} 
-        onClose={() => setCommentDialogOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Comments</DialogTitle>
-        <DialogContent dividers>
-          <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-            {comments.length > 0 ? (
-              comments.map((comment) => (
-                <ListItem 
-                  key={comment.id}
-                  alignItems="flex-start"
-                  secondaryAction={
-                    <IconButton 
-                      edge="end" 
-                      onClick={() => handleCommentLike(comment.id)}
-                      color={commentLikes.has(comment.id) ? "primary" : "default"}
-                    >
-                      {commentLikes.has(comment.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                    </IconButton>
-                  }
-                >
-                  <ListItemAvatar>
-                    <Avatar src={getFullUrl(comment.user?.image)} alt={comment.user?.name || 'User'} />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={comment.user?.name || 'Anonymous'}
-                    secondary={
-                      <>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="text.primary"
-                        >
-                          {comment.content}
-                        </Typography>
-                        {' — '}
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </>
-                    }
-                  />
-                </ListItem>
-              ))
-            ) : (
-              <ListItem>
-                <ListItemText primary="No comments yet. Be the first to comment!" />
-              </ListItem>
-            )}
-          </List>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Add a comment..."
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            size="small"
-          />
-          <IconButton 
-            color="primary" 
-            onClick={handleCommentSubmit}
-            disabled={!commentText.trim()}
+        {posts.map((post) => (
+          <Grid
+            item
+            xs={12}
+            key={post.id}
+            sx={{ display: 'flex', justifyContent: 'center' }}
           >
-            <SendIcon />
-          </IconButton>
-        </DialogActions>
-      </Dialog>
-      
-      {/* Post Options Menu */}
-      <Menu
-        anchorEl={menuAnchorEl}
-        open={isMenuOpen}
-        onClose={handleMenuClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-      >
-        <MenuItem onClick={handleDeletePost} sx={{ color: 'error.main' }}>
-          Delete Post
-        </MenuItem>
-      </Menu>
+            <Box sx={{ width: { xs: '90%', sm: '80%', md: '50%', lg: '40%' } }}>
+              <PostView
+                post={post}
+                currentUserId={currentUserId}
+                isLiked={likedPosts.has(post.id)}
+                likeCount={likeCounts.get(post.id) || 0}
+                isSaved={savedPosts.has(post.id)}
+                onLike={handleLikeClick}
+                onComment={handleCommentClick}
+                onSave={handleSaveClick}
+                onDelete={handleDeletePost}
+                comments={currentPostId === post.id ? comments : []}
+                commentLikes={commentLikes}
+                onCommentLike={handleCommentLike}
+                onCommentSubmit={handleCommentSubmit}
+              />
+            </Box>
+          </Grid>
+        ))}
+        {posts.length === 0 && (
+          <Grid item xs={12}>
+            <Typography variant="h6" color="text.secondary" align="center">
+              No posts yet
+            </Typography>
+          </Grid>
+        )}
+      </Grid>
     </Box>
   );
 }

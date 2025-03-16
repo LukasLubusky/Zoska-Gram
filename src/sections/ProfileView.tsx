@@ -36,6 +36,7 @@ import { togglePostLike, checkPostLike } from '@/app/action/likes';
 import { toggleFollow, checkFollowing, getFollowersCount, getFollowingCount } from '@/app/action/follows';
 import { createComment, getPostComments, toggleCommentLike, checkCommentLike } from '@/app/action/comments';
 import EditIcon from '@mui/icons-material/Edit';
+import BookmarksIcon from '@mui/icons-material/Bookmarks';
 import { useRouter } from 'next/navigation';
 
 interface Post {
@@ -375,14 +376,22 @@ export default function ProfileView({ userId, isOwnProfile = false }: ProfileVie
                 {user.name || 'Unnamed User'}
               </Typography>
               {isOwnProfile ? (
-                <Button
-                  variant="contained"
-                  startIcon={<EditIcon />}
-                  sx={{ ml: 2 }}
-                  onClick={() => router.push(`/profil/${userId}/edit`)}
-                >
-                  Edit Profile
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<EditIcon />}
+                    onClick={() => router.push(`/profil/${userId}/edit`)}
+                  >
+                    Edit Profile
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<BookmarksIcon />}
+                    onClick={() => router.push(`/profil/${userId}/saved/allPosts`)}
+                  >
+                    Saved Posts
+                  </Button>
+                </Box>
               ) : (
                 <Button
                   variant={isFollowing ? "outlined" : "contained"}

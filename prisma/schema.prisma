@@ -77,6 +77,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   Authenticator Authenticator[]
+  savedPostIds  String[]        @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -86,6 +87,7 @@ model User {
   likes        Like[]
   comments     Comment[]
   commentLikes CommentLike[]
+  savedPosts   Post[]  @relation("SavedPosts")
 }
 
 model Post {
@@ -99,6 +101,7 @@ model Post {
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   likes      Like[]
   comments   Comment[]
+  savedBy    User[]      @relation("SavedPosts")
 }
 
 model Profile {
