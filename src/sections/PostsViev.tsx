@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { fetchPosts } from '@/app/action/posts';
+import { fetchPosts, deletePost } from '@/app/action/posts';
 import { togglePostLike, checkPostLikesBatch, getPostLikesCountBatch } from '@/app/action/likes';
 import { createComment, getPostComments, toggleCommentLike, checkCommentLike } from '@/app/action/comments';
 import {
@@ -25,11 +25,14 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import CommentIcon from '@mui/icons-material/Comment';
 import SendIcon from '@mui/icons-material/Send';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 interface User {
   id: string;
@@ -119,6 +122,11 @@ export default function PostsView() {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentLikes, setCommentLikes] = useState<Set<string>>(new Set());
+
+  // Menu state
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuPostId, setMenuPostId] = useState<string>('');
+  const isMenuOpen = Boolean(menuAnchorEl);
 
   // Get the current user ID from the session
   useEffect(() => {
@@ -353,6 +361,13 @@ export default function PostsView() {
               subheader={`Posted on ${new Date(
                 post.createdAt
               ).toLocaleDateString()}`}
+              action={
+                post.userId === currentUserId && (
+                  <IconButton onClick={(e) => handleMenuOpen(e, post.id)}>
+                    <MoreVertIcon />
+                  </IconButton>
+                )
+              }
               sx={{ bgcolor: 'background.paper', p: 1 }}
             />
             <CardMedia
@@ -400,8 +415,31 @@ export default function PostsView() {
           </Card>
         </Grid>
       )),
-    [posts, likedPosts, likeCounts, handleLikeClick, handleCommentClick]
+    [posts, likedPosts, likeCounts, handleLikeClick, handleCommentClick, currentUserId]
   );
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, postId: string) => {
+    setMenuAnchorEl(event.currentTarget);
+    setMenuPostId(postId);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+    setMenuPostId('');
+  };
+
+  const handleDeletePost = async () => {
+    if (!menuPostId || !currentUserId) return;
+    
+    try {
+      await deletePost(menuPostId, currentUserId);
+      // Remove the post from the local state
+      setPosts(prev => prev.filter(post => post.id !== menuPostId));
+      handleMenuClose();
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  };
 
   return (
     <Box
@@ -494,6 +532,25 @@ export default function PostsView() {
           </IconButton>
         </DialogActions>
       </Dialog>
+      
+      {/* Post Options Menu */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={isMenuOpen}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <MenuItem onClick={handleDeletePost} sx={{ color: 'error.main' }}>
+          Delete Post
+        </MenuItem>
+      </Menu>
     </Box>
   );
 }

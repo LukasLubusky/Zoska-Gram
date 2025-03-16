@@ -52,3 +52,32 @@ export const createPost = async (userId: string, imageUrl: string, caption?: str
     throw new Error("Could not create post");
   }
 };
+
+// Delete a post
+export const deletePost = async (postId: string, userId: string) => {
+  try {
+    // First check if the post exists and belongs to the user
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { userId: true }
+    });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    if (post.userId !== userId) {
+      throw new Error("Not authorized to delete this post");
+    }
+
+    // Delete the post
+    await prisma.post.delete({
+      where: { id: postId }
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    throw error;
+  }
+};
