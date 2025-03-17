@@ -18,3 +18,4 @@ Next.js rezervovane nazvy --> layout.tsx, not-found.tsx, page.tsx
 
 -routing --> 
 npm run build --> skompiluje a vytvori production server na localhoste, vzdy zapnut pred commit/sync aby sa errors nedostali na production server
+

@@ -8,25 +8,41 @@ import HomeIcon from "@mui/icons-material/Home"
 import SearchIcon from "@mui/icons-material/Search"
 import AddIcon from "@mui/icons-material/Add"
 import LogoutIcon from "@mui/icons-material/Logout"
-import PersonAddIcon from "@mui/icons-material/PersonAdd"
-import LoginIcon from "@mui/icons-material/Login"
-import InfoIcon from "@mui/icons-material/Info"
+import PersonIcon from "@mui/icons-material/Person"
 import Brightness4Icon from "@mui/icons-material/Brightness4"
 import Brightness7Icon from "@mui/icons-material/Brightness7"
-import PersonIcon from "@mui/icons-material/Person"
+import BookmarkIcon from "@mui/icons-material/Bookmark"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
 import { useColorMode } from "@/components/ThemeProvider"
+import Menu from "@mui/material/Menu"
+import MenuItem from "@mui/material/MenuItem"
+import { signOut } from "next-auth/react"
 
 export default function BottomNavbar() {
   const [value, setValue] = React.useState(0)
   const { data: session } = useSession()
   const { toggleColorMode, mode } = useColorMode()
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
 
-  const commonItems = [{ label: "Domov", icon: <HomeIcon />, href: "/" }]
-  const authenticatedItems = [
+  const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  const handleLogout = async () => {
+    handleClose()
+    await signOut({ callbackUrl: "/" })
+  }
+
+  const navItems = [
+    { label: "Domov", icon: <HomeIcon />, href: "/" },
     { label: "Hľadať", icon: <SearchIcon />, href: "/hladanie" },
+    { label: "Pridať", icon: <AddIcon />, href: "/pridat" },
     {
       label: "Profil",
       icon: session?.user?.image ? (
@@ -40,20 +56,9 @@ export default function BottomNavbar() {
       ) : (
         <PersonIcon />
       ),
-      href: "/profil",
+      onClick: handleProfileClick,
     },
-    { label: "Pridať", icon: <AddIcon />, href: "/pridat" },
-    { label: "Odhlásiť", icon: <LogoutIcon />, href: "/auth/odhlasenie" },
   ]
-
-  const unauthenticatedItems = [
-    { label: "O mne", icon: <InfoIcon />, href: "/o-mne" },
-    { label: "Prihlásenie", icon: <LoginIcon />, href: "/auth/prihlasenie" },
-    { label: "Registrácia", icon: <PersonAddIcon />, href: "/auth/registracia" },
-  ]
-
-  // Combine the common items with the ones depending on session status.
-  const navItems = [...commonItems, ...(session ? authenticatedItems : unauthenticatedItems)]
 
   return (
     <Box
@@ -88,35 +93,43 @@ export default function BottomNavbar() {
             key={item.label}
             label={item.label}
             icon={item.icon}
-            component={Link}
-            href={item.href}
+            {...(item.href ? { component: Link, href: item.href } : {})}
+            onClick={item.onClick}
           />
         ))}
-        {/* Theme toggle integrated as an action */}
-        <BottomNavigationAction
-          key="toggle-theme"
-          icon={mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
-          onClick={(event) => {
-            // Prevent any default behavior if needed.
-            event.preventDefault()
-            toggleColorMode()
-          }}
-          sx={{
-            // Adjust styling as needed so that it matches the other actions.
-            minWidth: "auto",
-            flex: 1,
-          }}
-        />
       </BottomNavigation>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+      >
+        <MenuItem component={Link} href="/profil" onClick={handleClose}>
+          <PersonIcon sx={{ mr: 1 }} /> Profil
+        </MenuItem>
+        <MenuItem 
+          component={Link} 
+          href={`/profil/${session?.user?.id}/saved/allPosts`} 
+          onClick={handleClose}
+        >
+          <BookmarkIcon sx={{ mr: 1 }} /> Saved Posts
+        </MenuItem>
+        <MenuItem onClick={toggleColorMode}>
+          {mode === "dark" ? <Brightness7Icon sx={{ mr: 1 }} /> : <Brightness4Icon sx={{ mr: 1 }} />}
+          Theme
+        </MenuItem>
+        <MenuItem onClick={handleLogout}>
+          <LogoutIcon sx={{ mr: 1 }} /> Log out
+        </MenuItem>
+      </Menu>
     </Box>
   )
 }
-
-
-
-
-
-
-
-
-

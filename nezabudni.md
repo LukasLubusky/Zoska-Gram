@@ -1,0 +1,1 @@
+Daj rpec to ze komenty pod post potom, je to zbytocne a zatazuje to apku chod podla ig tak ako originalne ze len ikona a zmen potom to ze komenty sa nacitavaju spolu s posts, daj to tak e sa nacitaju az ked niekto tovori tie komenty cez pop up tak ako to je v ig realne

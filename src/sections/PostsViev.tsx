@@ -88,9 +88,9 @@ export default function PostsView() {
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
   
   // Comment state
-  const [currentPostId, setCurrentPostId] = useState('');
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [postComments, setPostComments] = useState<Map<string, Comment[]>>(new Map());
   const [commentLikes, setCommentLikes] = useState<Set<string>>(new Set());
+  const [currentPostId, setCurrentPostId] = useState<string>('');
 
   // Get the current user ID from the session
   useEffect(() => {
@@ -119,7 +119,7 @@ export default function PostsView() {
         if (currentUserId && fetchedPosts.length > 0) {
           const postIds = fetchedPosts.map(post => post.id);
           
-          // Load likes and saves in parallel
+          // Load likes, saves, and comments in parallel
           type LikesResult = [Set<string>, Map<string, number>, Set<string>];
           const [likedPostIds, postLikeCounts, savedPostIds] = await Promise.all([
             checkPostLikesBatch(currentUserId, postIds),
@@ -130,6 +130,32 @@ export default function PostsView() {
           setLikedPosts(likedPostIds);
           setLikeCounts(postLikeCounts);
           setSavedPosts(savedPostIds);
+
+          // Load comments for all posts
+          const commentsMap = new Map<string, Comment[]>();
+          const commentLikesSet = new Set<string>();
+
+          await Promise.all(postIds.map(async (postId) => {
+            try {
+              const postComments = await getPostComments(postId);
+              if (postComments) {
+                commentsMap.set(postId, postComments.map(ensureCommentShape));
+                
+                // Check likes for each comment
+                await Promise.all(postComments.map(async (comment) => {
+                  const isLiked = await checkCommentLike(currentUserId, comment.id);
+                  if (isLiked) {
+                    commentLikesSet.add(comment.id);
+                  }
+                }));
+              }
+            } catch (error) {
+              console.error(`Error loading comments for post ${postId}:`, error);
+            }
+          }));
+
+          setPostComments(commentsMap);
+          setCommentLikes(commentLikesSet);
         }
       } catch (error) {
         console.error('Error loading posts and status:', error);
@@ -218,31 +244,11 @@ export default function PostsView() {
     }
   }, [session, currentUserId, likedPosts, likeCounts]);
   
-  const loadComments = useCallback(async (postId: string) => {
-    try {
-      console.log("Loading comments for post:", postId);
-      const postComments = await getPostComments(postId);
-      console.log("Comments loaded:", postComments?.length || 0);
-      setComments((postComments || []).map(ensureCommentShape));
-      
-      const likedCommentIds = new Set<string>();
-      for (const comment of postComments || []) {
-        const isLiked = await checkCommentLike(currentUserId, comment.id);
-        if (isLiked) {
-          likedCommentIds.add(comment.id);
-        }
-      }
-      setCommentLikes(likedCommentIds);
-    } catch (error) {
-      console.error('Error loading comments:', error);
-    }
-  }, [currentUserId]);
-  
   const handleCommentClick = useCallback(async (postId: string) => {
+    // We only need to track the current post ID for the dialog
     setCurrentPostId(postId);
-    await loadComments(postId);
-  }, [loadComments]);
-  
+  }, []);
+
   const handleCommentSubmit = async (content: string) => {
     if (!content.trim() || !currentPostId || !session?.user) {
       console.log("Missing comment text, post ID, or user session");
@@ -262,13 +268,21 @@ export default function PostsView() {
             id: session.user.id || '',
             name: session.user.name || null,
             email: session.user.email || '',
-            emailVerified: null, // We don't have this in the session, so default to null
+            emailVerified: null,
             image: session.user.image || null,
-            createdAt: new Date(), // New comment, so use current time
+            createdAt: new Date(),
             updatedAt: new Date(),
           }
         };
-        setComments(prev => [ensureCommentShape(commentWithUser), ...prev]);
+        const shapedComment = ensureCommentShape(commentWithUser);
+        
+        // Update the comments map
+        setPostComments(prev => {
+          const newMap = new Map(prev);
+          const currentComments = newMap.get(currentPostId) || [];
+          newMap.set(currentPostId, [shapedComment, ...currentComments]);
+          return newMap;
+        });
       }
     } catch (error) {
       console.error('Error in handleCommentSubmit:', error);
@@ -399,8 +413,8 @@ export default function PostsView() {
                 onLike={handleLikeClick}
                 onComment={handleCommentClick}
                 onSave={handleSaveClick}
-                onDelete={handleDeletePost}
-                comments={currentPostId === post.id ? comments : []}
+                onDelete={post.userId === currentUserId ? handleDeletePost : undefined}
+                comments={postComments.get(post.id) || []}
                 commentLikes={commentLikes}
                 onCommentLike={handleCommentLike}
                 onCommentSubmit={handleCommentSubmit}
@@ -419,9 +433,3 @@ export default function PostsView() {
     </Box>
   );
 }
-
-
-
-
-
-
