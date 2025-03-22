@@ -39,8 +39,8 @@ export default function BottomNavbar() {
     await signOut({ callbackUrl: "/" })
   }
 
-  const navItems = [
-    { label: "Domov", icon: <HomeIcon />, href: "/" },
+  const navItems = session ? [
+    { label: "Domov", icon: <HomeIcon />, href: "/home" },
     { label: "Hľadať", icon: <SearchIcon />, href: "/hladanie" },
     { label: "Pridať", icon: <AddIcon />, href: "/pridat" },
     {
@@ -58,6 +58,11 @@ export default function BottomNavbar() {
       ),
       onClick: handleProfileClick,
     },
+  ] : [
+    { label: "Domov", icon: <HomeIcon />, href: "/" },
+    { label: "O mne", icon: <PersonIcon />, href: "/o-mne" },
+    { label: "Prihlásenie", icon: <LogoutIcon />, href: "/auth/prihlasenie" },
+    { label: "Registrácia", icon: <PersonIcon />, href: "/auth/registracia" },
   ]
 
   return (
