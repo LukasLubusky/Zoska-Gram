@@ -1,13 +1,13 @@
-// // robertweb/src/app/prispevok/page.tsx
+// robertweb/src/app/prispevok/page.tsx
 
-import PostView from '@/sections/PostsViev'; // Adjust the import path as needed
+import PostsView from '@/sections/PostsView';
 
 export const metadata = { title: 'Zoznam prispevkov | RobertWeb' };
 
 export default function PostList() {
   return (
     <div>
-      <PostView />
+      <PostsView />
     </div>
   );
 }

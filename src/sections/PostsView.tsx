@@ -250,14 +250,27 @@ export default function PostsView() {
   }, []);
 
   const handleCommentSubmit = async (content: string) => {
-    if (!content.trim() || !currentPostId || !session?.user) {
-      console.log("Missing comment text, post ID, or user session");
+    // Validate all required fields
+    if (!content?.trim()) {
+      console.log("Missing comment text");
+      return;
+    }
+    if (!currentPostId) {
+      console.log("No post selected for comment");
+      return;
+    }
+    if (!session?.user?.id) {
+      console.log("User must be logged in to comment");
+      return;
+    }
+    if (!currentUserId) {
+      console.log("User ID not found");
       return;
     }
     
     try {
       console.log("Attempting to create comment for post:", currentPostId);
-      const newComment = await createComment(currentUserId, currentPostId, content);
+      const newComment = await createComment(currentUserId, currentPostId, content.trim());
       console.log("Comment created successfully:", newComment);
       
       if (newComment) {
@@ -265,22 +278,29 @@ export default function PostsView() {
         const commentWithUser = {
           ...newComment,
           user: {
-            id: session.user.id || '',
+            id: session.user.id,
             name: session.user.name || null,
             email: session.user.email || '',
             emailVerified: null,
             image: session.user.image || null,
             createdAt: new Date(),
             updatedAt: new Date(),
-          }
+          },
+          likes: []  // Initialize empty likes array
         };
+
+        // Shape the comment properly
         const shapedComment = ensureCommentShape(commentWithUser);
         
-        // Update the comments map
+        // Update the comments map with the new comment
         setPostComments(prev => {
           const newMap = new Map(prev);
-          const currentComments = newMap.get(currentPostId) || [];
-          newMap.set(currentPostId, [shapedComment, ...currentComments]);
+          // Get existing comments or initialize empty array
+          const existingComments = Array.from(newMap.get(currentPostId) || []);
+          // Add new comment at the beginning
+          const updatedComments = [shapedComment, ...existingComments];
+          // Update map with new comments array
+          newMap.set(currentPostId, updatedComments);
           return newMap;
         });
       }
@@ -383,7 +403,7 @@ export default function PostsView() {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: 'background.default', // uses the theme's background setting
+        bgcolor: 'background.default',
         p: 3,
       }}
     >
@@ -400,35 +420,34 @@ export default function PostsView() {
           <Grid
             item
             xs={12}
+            sm={10}
+            md={8}
+            lg={6}
             key={post.id}
-            sx={{ display: 'flex', justifyContent: 'center' }}
           >
-            <Box sx={{ width: { xs: '90%', sm: '80%', md: '50%', lg: '40%' } }}>
-              <PostView
-                post={post}
-                currentUserId={currentUserId}
-                isLiked={likedPosts.has(post.id)}
-                likeCount={likeCounts.get(post.id) || 0}
-                isSaved={savedPosts.has(post.id)}
-                onLike={handleLikeClick}
-                onComment={handleCommentClick}
-                onSave={handleSaveClick}
-                onDelete={post.userId === currentUserId ? handleDeletePost : undefined}
-                comments={postComments.get(post.id) || []}
-                commentLikes={commentLikes}
-                onCommentLike={handleCommentLike}
-                onCommentSubmit={handleCommentSubmit}
-              />
-            </Box>
+            <PostView
+              post={post}
+              currentUserId={currentUserId}
+              isLiked={likedPosts.has(post.id)}
+              likeCount={likeCounts.get(post.id)}
+              isSaved={savedPosts.has(post.id)}
+              onLike={handleLikeClick}
+              onComment={(postId) => {
+                setCurrentPostId(postId);
+                handleCommentClick(postId);
+              }}
+              onSave={handleSaveClick}
+              onDelete={post.userId === currentUserId ? handleDeletePost : undefined}
+              comments={postComments.get(post.id)}
+              commentLikes={commentLikes}
+              onCommentLike={handleCommentLike}
+              onCommentSubmit={(content) => {
+                setCurrentPostId(post.id);
+                handleCommentSubmit(content);
+              }}
+            />
           </Grid>
         ))}
-        {posts.length === 0 && (
-          <Grid item xs={12}>
-            <Typography variant="h6" color="text.secondary" align="center">
-              No posts yet
-            </Typography>
-          </Grid>
-        )}
       </Grid>
     </Box>
   );

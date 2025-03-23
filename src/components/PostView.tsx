@@ -134,10 +134,15 @@ const PostView: React.FC<PostViewProps> = ({
     setCommentDialogOpen(true);
   };
 
-  const handleCommentSubmit = () => {
+  const handleCommentSubmit = async () => {
     if (commentText.trim() && onCommentSubmit) {
-      onCommentSubmit(commentText);
-      setCommentText('');
+      try {
+        onComment(post.id); 
+        await onCommentSubmit(commentText);
+        setCommentText('');
+      } catch (error) {
+        console.error('Failed to submit comment:', error);
+      }
     }
   };
 
@@ -222,107 +227,105 @@ const PostView: React.FC<PostViewProps> = ({
       {/* Inline Comments Section */}
       <Box sx={{ px: 2, pb: 2 }}>
         {/* Comments Display Area */}
-        {comments.length > 0 && (
-          <Box 
-            sx={{ 
-              maxHeight: '200px', 
-              overflowY: 'auto', 
-              mb: 2,
-              '&::-webkit-scrollbar': {
-                width: '8px',
+        <Box 
+          sx={{ 
+            maxHeight: '200px', 
+            overflowY: 'auto', 
+            mb: 2,
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '4px',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.3)',
               },
-              '&::-webkit-scrollbar-track': {
-                backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                borderRadius: '4px',
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                },
-              },
-            }}
-          >
-            <List disablePadding>
-              {comments.map((comment) => (
-                <ListItem 
-                  key={comment.id}
-                  alignItems="flex-start"
-                  secondaryAction={
-                    onCommentLike && (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <IconButton 
-                          edge="end" 
-                          onClick={() => onCommentLike(comment.id)}
-                          color={commentLikes.has(comment.id) ? "primary" : "default"}
-                          size="small"
+            },
+          }}
+        >
+          <List disablePadding>
+            {comments?.map((comment) => (
+              <ListItem 
+                key={comment.id}
+                alignItems="flex-start"
+                secondaryAction={
+                  onCommentLike && (
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <IconButton 
+                        edge="end" 
+                        onClick={() => onCommentLike(comment.id)}
+                        color={commentLikes.has(comment.id) ? "primary" : "default"}
+                        size="small"
+                      >
+                        {commentLikes.has(comment.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                      </IconButton>
+                      {commentLikeCounts.get(comment.id) !== undefined && (
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary" 
+                          component="span" 
+                          sx={{ 
+                            position: 'absolute',
+                            right: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)'
+                          }}
                         >
-                          {commentLikes.has(comment.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                        </IconButton>
-                        {commentLikeCounts.get(comment.id) !== undefined && (
-                          <Typography 
-                            variant="body2" 
-                            color="text.secondary" 
-                            component="span" 
-                            sx={{ 
-                              position: 'absolute',
-                              right: 8,
-                              top: '50%',
-                              transform: 'translateY(-50%)'
-                            }}
-                          >
-                            {commentLikeCounts.get(comment.id)}
-                          </Typography>
-                        )}
-                      </Box>
-                    )
-                  }
-                  sx={{ 
-                    px: 0, 
-                    py: 1,
-                    pr: onCommentLike ? (commentLikeCounts.get(comment.id) ? '72px' : '48px') : 0 
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar 
-                      src={getFullUrl(comment.user?.image)} 
-                      alt={comment.user?.name || 'User'}
-                      sx={{ width: 32, height: 32 }}
-                    />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Typography variant="subtitle2" component="span">
-                        {comment.user?.name || 'Anonymous'}
-                      </Typography>
-                    }
-                    secondary={
-                      <>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="text.primary"
-                          sx={{ display: 'inline' }}
-                        >
-                          {comment.content}
+                          {commentLikeCounts.get(comment.id)}
                         </Typography>
-                        {' · '}
-                        <Typography
-                          component="span"
-                          variant="caption"
-                          color="text.secondary"
-                        >
-                          {new Date(comment.createdAt).toLocaleDateString()}
-                        </Typography>
-                      </>
-                    }
+                      )}
+                    </Box>
+                  )
+                }
+                sx={{ 
+                  px: 0, 
+                  py: 1,
+                  pr: onCommentLike ? (commentLikeCounts.get(comment.id) ? '72px' : '48px') : 0 
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar 
+                    src={getFullUrl(comment.user?.image)} 
+                    alt={comment.user?.name || 'User'}
+                    sx={{ width: 32, height: 32 }}
                   />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        )}
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <Typography variant="subtitle2" component="span">
+                      {comment.user?.name || 'Anonymous'}
+                    </Typography>
+                  }
+                  secondary={
+                    <>
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        color="text.primary"
+                        sx={{ display: 'inline' }}
+                      >
+                        {comment.content}
+                      </Typography>
+                      {' · '}
+                      <Typography
+                        component="span"
+                        variant="caption"
+                        color="text.secondary"
+                      >
+                        {new Date(comment.createdAt).toLocaleDateString()}
+                      </Typography>
+                    </>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
 
         {/* Comment Input Field */}
         {onCommentSubmit && (
@@ -335,6 +338,12 @@ const PostView: React.FC<PostViewProps> = ({
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               size="small"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleCommentSubmit();
+                }
+              }}
             />
             <IconButton 
               color="primary" 
@@ -376,7 +385,7 @@ const PostView: React.FC<PostViewProps> = ({
         <DialogTitle>Comments</DialogTitle>
         <DialogContent dividers>
           <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-            {comments.length > 0 ? (
+            {comments?.length > 0 ? (
               comments.map((comment) => (
                 <ListItem 
                   key={comment.id}
@@ -443,14 +452,21 @@ const PostView: React.FC<PostViewProps> = ({
           <DialogActions sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
             <TextField
               fullWidth
+              multiline
+              rows={2}
               variant="outlined"
               placeholder="Add a comment..."
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              size="small"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleCommentSubmit();
+                }
+              }}
             />
-            <IconButton 
-              color="primary" 
+            <IconButton
+              color="primary"
               onClick={handleCommentSubmit}
               disabled={!commentText.trim()}
             >
