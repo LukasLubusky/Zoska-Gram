@@ -1,12 +1,12 @@
 
 
-// robertweb/src/app/podmienky/page.tsx
+// Zoska-Gram/src/app/podmienky/page.tsx
 
 
 import Box from '@mui/material/Box';
 import GDPRView from '@/sections/GDPRView';
 
-export const metadata = { title: 'GDPR | RobertWeb' };
+export const metadata = { title: 'GDPR | Zoska-Gram' };
 
 export default function TermsConditions() {
   return (

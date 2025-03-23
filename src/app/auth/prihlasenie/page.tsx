@@ -2,7 +2,7 @@
 
 import SignInView from '@/sections/SignInView';
 
-export const metadata = { title: 'Prihlásenie | RobertWeb' };
+export const metadata = { title: 'Prihlásenie | Zoska-Gram' };
 
 export default function SignIn() {
   return (

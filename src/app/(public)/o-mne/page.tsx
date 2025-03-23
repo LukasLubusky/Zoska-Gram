@@ -1,8 +1,8 @@
-// robertweb/src/app/o-mne/page.tsx
+// Zoska-Gram/src/app/o-mne/page.tsx
 
 import { Box, Container, Typography } from '@mui/material';
 
-export const metadata = { title: 'O mne | RobertWeb' };
+export const metadata = { title: 'O mne | Zoska-Gram' };
 
 export default function About() {
   return (

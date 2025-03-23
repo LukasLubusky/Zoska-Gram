@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions';
 
-export const metadata = { title: 'Môj profil | RobertWeb' };
+export const metadata = { title: 'Môj profil | Zoska-Gram'};
 
 export default async function Profile() {
   const session = await getServerSession(authOptions);

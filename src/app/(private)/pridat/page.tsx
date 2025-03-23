@@ -1,10 +1,10 @@
-// robertweb/src/app/pridat/page.tsx
+// Zoska-Gram/src/app/pridat/page.tsx
 
 import Typography from '@mui/material/Typography';
 import { Container } from '@mui/material';
 import AddPostView from '@/sections/AddPostView';
 
-export const metadata = { title: 'Pridanie prispevku | RobertWeb'};
+export const metadata = { title: 'Pridanie prispevku | Zoska-Gram'};
 
 export default function AddPost() {
   return (
