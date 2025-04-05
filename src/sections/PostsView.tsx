@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { fetchPosts, deletePost } from '@/app/action/posts';
 import { togglePostLike, checkPostLikesBatch, getPostLikesCountBatch } from '@/app/action/likes';
-import { createComment, getPostComments, toggleCommentLike, checkCommentLike } from '@/app/action/comments';
+import { createComment, getPostComments, toggleCommentLike, checkCommentLike, deleteComment } from '@/app/action/comments';
 import { toggleSavePost, checkSavedPostsBatch } from '@/app/action/saves';
 import {
   Box,
@@ -378,6 +378,68 @@ export default function PostsView() {
     }
   };
 
+  const handleCommentDelete = async (commentId: string) => {
+    if (!currentUserId) {
+      console.error("No user ID found");
+      return;
+    }
+
+    try {
+      console.log("Deleting comment:", commentId);
+      
+      // Find which post this comment belongs to
+      let postId = '';
+      let commentToDelete: Comment | undefined;
+      
+      postComments.forEach((comments, pId) => {
+        const found = comments.find(c => c.id === commentId);
+        if (found) {
+          postId = pId;
+          commentToDelete = found;
+        }
+      });
+      
+      if (!postId || !commentToDelete) {
+        console.error("Could not find post for comment:", commentId);
+        return;
+      }
+      
+      if (commentToDelete.userId !== currentUserId) {
+        console.error("User is not authorized to delete this comment");
+        return;
+      }
+      
+      // Optimistic update - remove the comment from UI first
+      setPostComments(prev => {
+        const newMap = new Map(prev);
+        const currentComments = Array.from(newMap.get(postId) || []);
+        const updatedComments = currentComments.filter(c => c.id !== commentId);
+        newMap.set(postId, updatedComments);
+        return newMap;
+      });
+      
+      // Actually delete the comment
+      const result = await deleteComment(commentId, currentUserId);
+      console.log("Comment delete result:", result);
+      
+      // If deletion fails, revert the optimistic update
+      if (!result) {
+        console.error("Failed to delete comment:", commentId);
+        // Refresh comments to revert UI
+        const updatedComments = await getPostComments(postId);
+        if (updatedComments) {
+          setPostComments(prev => {
+            const newMap = new Map(prev);
+            newMap.set(postId, updatedComments.map(ensureCommentShape));
+            return newMap;
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
   const handleSaveClick = async (postId: string) => {
     if (!session) {
       console.error("No session found");
@@ -487,6 +549,7 @@ export default function PostsView() {
                 commentLikes={commentLikes}
                 onCommentLike={handleCommentLike}
                 onCommentSubmit={handleCommentSubmit}
+                onCommentDelete={handleCommentDelete}
               />
             </Box>
           </Grid>

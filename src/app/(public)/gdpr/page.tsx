@@ -1,17 +1,19 @@
+// robertweb/src/app/gdpr/page.tsx
 
-
-// robertweb/src/app/podmienky/page.tsx
-
-
-import Box from '@mui/material/Box';
+import { Box, Container } from '@mui/material';
 import GDPRView from '@/sections/GDPRView';
 
-export const metadata = { title: 'GDPR | RobertWeb' };
+export const metadata = { title: 'GDPR | ZoškaGram' };
 
 export default function TermsConditions() {
   return (
-    <Box sx={{ padding: '25px' }}>
-      <GDPRView />
+    <Box sx={{ 
+      backgroundColor: '#FAFAFA',
+      minHeight: '100vh'
+    }}>
+      <Container maxWidth="lg">
+        <GDPRView />
+      </Container>
     </Box>
   );
 }

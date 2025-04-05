@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { getSavedPosts, toggleSavePost } from '@/app/action/saves';
 import { togglePostLike, checkPostLikesBatch, getPostLikesCountBatch } from '@/app/action/likes';
+import { createComment, getPostComments, toggleCommentLike, checkCommentLike, deleteComment } from '@/app/action/comments';
 import { deletePost } from '@/app/action/posts';
-import { createComment, getPostComments, toggleCommentLike, checkCommentLike } from '@/app/action/comments';
 import {
   Box,
   Typography,
@@ -84,6 +84,7 @@ export default function SavedPostsView() {
   const [currentPostId, setCurrentPostId] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentLikes, setCommentLikes] = useState<Set<string>>(new Set());
+  const [commentsLoaded, setCommentsLoaded] = useState<Set<string>>(new Set());
 
   // Get the current user ID from the session
   useEffect(() => {
@@ -120,6 +121,9 @@ export default function SavedPostsView() {
           
           setLikedPosts(likedPostIds);
           setLikeCounts(postLikeCounts);
+          
+          // Automatically load comments for all posts
+          await Promise.all(postIds.map(loadComments));
         }
       } catch (error) {
         console.error('Error loading saved posts:', error);
@@ -128,6 +132,37 @@ export default function SavedPostsView() {
 
     loadSavedPosts();
   }, [currentUserId]);
+
+  const loadComments = async (postId: string) => {
+    try {
+      // Skip if we've already loaded comments for this post
+      if (commentsLoaded.has(postId)) {
+        return;
+      }
+      
+      console.log("Loading comments for post:", postId);
+      const postComments = await getPostComments(postId);
+      console.log("Comments loaded:", postComments?.length || 0);
+      
+      if (postComments) {
+        // Add to loaded posts set
+        setCommentsLoaded(prev => new Set(prev).add(postId));
+        setComments(prev => [...(postComments || []).map(ensureCommentShape), ...prev]);
+        
+        // Process comment likes
+        const likedCommentIds = new Set<string>(commentLikes);
+        await Promise.all(postComments.map(async (comment) => {
+          const isLiked = await checkCommentLike(currentUserId, comment.id);
+          if (isLiked) {
+            likedCommentIds.add(comment.id);
+          }
+        }));
+        setCommentLikes(likedCommentIds);
+      }
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    }
+  };
 
   const handleUnsave = async (postId: string) => {
     try {
@@ -186,40 +221,36 @@ export default function SavedPostsView() {
     }
   };
 
-  const loadComments = async (postId: string) => {
-    try {
-      console.log("Loading comments for post:", postId);
-      const postComments = await getPostComments(postId);
-      console.log("Comments loaded:", postComments?.length || 0);
-      setComments((postComments || []).map(ensureCommentShape));
-      
-      const likedCommentIds = new Set<string>();
-      for (const comment of postComments || []) {
-        const isLiked = await checkCommentLike(currentUserId, comment.id);
-        if (isLiked) {
-          likedCommentIds.add(comment.id);
-        }
-      }
-      setCommentLikes(likedCommentIds);
-    } catch (error) {
-      console.error('Error loading comments:', error);
-    }
-  };
-
   const handleCommentClick = async (postId: string) => {
     setCurrentPostId(postId);
-    await loadComments(postId);
+    // No need to load comments here as they're loaded automatically
   };
 
   const handleCommentSubmit = async (content: string) => {
-    if (!content.trim() || !currentPostId || !session?.user) {
+    console.log("Submitting comment for post:", currentPostId, "Content:", content);
+    
+    // Check if the content includes the post ID in the special format (postId:::content)
+    let postIdToUse = currentPostId;
+    let contentToSubmit = content.trim();
+    
+    // Parse special format if present (postId:::content)
+    if (contentToSubmit.includes(':::')) {
+      const parts = contentToSubmit.split(':::');
+      if (parts.length === 2) {
+        postIdToUse = parts[0];
+        contentToSubmit = parts[1];
+        console.log("Extracted post ID from content:", postIdToUse);
+      }
+    }
+    
+    if (!contentToSubmit || !postIdToUse || !session?.user) {
       console.log("Missing comment text, post ID, or user session");
       return;
     }
     
     try {
-      console.log("Attempting to create comment for post:", currentPostId);
-      const newComment = await createComment(currentUserId, currentPostId, content);
+      console.log("Creating comment for post:", postIdToUse);
+      const newComment = await createComment(currentUserId, postIdToUse, contentToSubmit);
       console.log("Comment created successfully:", newComment);
       
       if (newComment) {
@@ -234,9 +265,37 @@ export default function SavedPostsView() {
             image: session.user.image || null,
             createdAt: new Date(), // New comment, so use current time
             updatedAt: new Date(),
-          }
+          },
+          likes: []
         };
-        setComments(prev => [ensureCommentShape(commentWithUser), ...prev]);
+
+        console.log("Shaped comment:", commentWithUser);
+        const shapedComment = ensureCommentShape(commentWithUser);
+        
+        // Update comments with the new comment (optimistic update)
+        setComments(prev => [shapedComment, ...prev]);
+
+        // Always fetch fresh comments after a short delay to ensure consistency
+        const postIdForRefresh = postIdToUse;
+        console.log("Scheduling comment refresh after delay for post:", postIdForRefresh);
+        setTimeout(async () => {
+          try {
+            console.log("Refreshing comments for post:", postIdForRefresh);
+            const updatedComments = await getPostComments(postIdForRefresh);
+            console.log("Refreshed comments for post", postIdForRefresh, ":", updatedComments);
+            
+            if (updatedComments) {
+              setComments(prev => {
+                // Remove old comments for this post
+                const filteredComments = prev.filter(c => c.postId !== postIdForRefresh);
+                // Add the fresh comments
+                return [...updatedComments.map(ensureCommentShape), ...filteredComments];
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching updated comments:', error);
+          }
+        }, 500);
       }
     } catch (error) {
       console.error('Error in handleCommentSubmit:', error);
@@ -262,7 +321,56 @@ export default function SavedPostsView() {
       console.error('Error toggling comment like:', error);
     }
   };
-  
+
+  const handleCommentDelete = async (commentId: string) => {
+    if (!currentUserId) {
+      console.error("No user ID found");
+      return;
+    }
+
+    try {
+      console.log("Deleting comment:", commentId);
+      
+      // Find the comment we want to delete
+      const commentToDelete = comments.find(c => c.id === commentId);
+      
+      if (!commentToDelete) {
+        console.error("Could not find comment:", commentId);
+        return;
+      }
+      
+      if (commentToDelete.userId !== currentUserId) {
+        console.error("User is not authorized to delete this comment");
+        return;
+      }
+      
+      // Optimistic update - remove the comment from UI first
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      
+      // Actually delete the comment
+      const result = await deleteComment(commentId, currentUserId);
+      console.log("Comment delete result:", result);
+      
+      // If deletion fails, revert the optimistic update
+      if (!result) {
+        console.error("Failed to delete comment:", commentId);
+        // Refresh comments for the relevant post to revert UI
+        const postId = commentToDelete.postId;
+        const updatedComments = await getPostComments(postId);
+        if (updatedComments) {
+          setComments(prev => {
+            // Remove old comments for this post
+            const filteredComments = prev.filter(c => c.postId !== postId);
+            // Add the fresh comments
+            return [...updatedComments.map(ensureCommentShape), ...filteredComments];
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
   const handleDeletePost = async (postId: string) => {
     if (!currentUserId) return;
     
@@ -306,10 +414,11 @@ export default function SavedPostsView() {
                   onComment={handleCommentClick}
                   onSave={handleUnsave}
                   onDelete={handleDeletePost}
-                  comments={currentPostId === savedPost.post.id ? comments : []}
+                  comments={comments.filter(comment => comment.postId === savedPost.post.id)}
                   commentLikes={commentLikes}
                   onCommentLike={handleCommentLike}
                   onCommentSubmit={handleCommentSubmit}
+                  onCommentDelete={handleCommentDelete}
                 />
               </Box>
             </Grid>

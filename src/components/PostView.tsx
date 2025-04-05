@@ -30,6 +30,7 @@ import SendIcon from '@mui/icons-material/Send';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 // Helper function to ensure URLs have a protocol
 const getFullUrl = (url: string | null) => {
@@ -89,6 +90,7 @@ interface PostViewProps {
   commentLikeCounts?: Map<string, number>;
   onCommentLike?: (commentId: string) => void;
   onCommentSubmit?: (content: string) => void;
+  onCommentDelete?: (commentId: string) => void;
 }
 
 const PostView: React.FC<PostViewProps> = ({
@@ -106,6 +108,7 @@ const PostView: React.FC<PostViewProps> = ({
   commentLikeCounts = new Map(),
   onCommentLike,
   onCommentSubmit,
+  onCommentDelete,
 }) => {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
@@ -264,8 +267,8 @@ const PostView: React.FC<PostViewProps> = ({
                   key={comment.id}
                   alignItems="flex-start"
                   secondaryAction={
-                    onCommentLike && (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {onCommentLike && (
                         <IconButton 
                           edge="end" 
                           onClick={() => onCommentLike(comment.id)}
@@ -274,28 +277,34 @@ const PostView: React.FC<PostViewProps> = ({
                         >
                           {commentLikes.has(comment.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                         </IconButton>
-                        {commentLikeCounts.get(comment.id) !== undefined && (
-                          <Typography 
-                            variant="body2" 
-                            color="text.secondary" 
-                            component="span" 
-                            sx={{ 
-                              position: 'absolute',
-                              right: 8,
-                              top: '50%',
-                              transform: 'translateY(-50%)'
-                            }}
-                          >
-                            {commentLikeCounts.get(comment.id)}
-                          </Typography>
-                        )}
-                      </Box>
-                    )
+                      )}
+                      {commentLikeCounts.get(comment.id) !== undefined && (
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary" 
+                          component="span" 
+                          sx={{ ml: 0.5 }}
+                        >
+                          {commentLikeCounts.get(comment.id)}
+                        </Typography>
+                      )}
+                      {onCommentDelete && comment.userId === currentUserId && (
+                        <IconButton 
+                          edge="end" 
+                          onClick={() => onCommentDelete(comment.id)}
+                          color="default"
+                          size="small"
+                          sx={{ ml: 1 }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Box>
                   }
                   sx={{ 
                     px: 0, 
                     py: 1,
-                    pr: onCommentLike ? (commentLikeCounts.get(comment.id) ? '72px' : '48px') : 0 
+                    pr: 6 // Give more space for action buttons
                   }}
                 >
                   <ListItemAvatar>
@@ -412,8 +421,8 @@ const PostView: React.FC<PostViewProps> = ({
                   key={comment.id}
                   alignItems="flex-start"
                   secondaryAction={
-                    onCommentLike && (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {onCommentLike && (
                         <IconButton 
                           edge="end" 
                           onClick={() => onCommentLike(comment.id)}
@@ -422,23 +431,34 @@ const PostView: React.FC<PostViewProps> = ({
                         >
                           {commentLikes.has(comment.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                         </IconButton>
-                        {commentLikeCounts.get(comment.id) !== undefined && (
-                          <Typography 
-                            variant="body2" 
-                            color="text.secondary" 
-                            component="span" 
-                            sx={{ 
-                              position: 'absolute',
-                              right: 8,
-                              top: '50%',
-                              transform: 'translateY(-50%)'
-                            }}
-                          >
-                            {commentLikeCounts.get(comment.id)}
-                          </Typography>
-                        )}
-                      </Box>
-                    )
+                      )}
+                      {commentLikeCounts.get(comment.id) !== undefined && (
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary" 
+                          component="span" 
+                          sx={{ 
+                            position: 'absolute',
+                            right: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)'
+                          }}
+                        >
+                          {commentLikeCounts.get(comment.id)}
+                        </Typography>
+                      )}
+                      {onCommentDelete && comment.userId === currentUserId && (
+                        <IconButton 
+                          edge="end" 
+                          onClick={() => onCommentDelete(comment.id)}
+                          color="default"
+                          size="small"
+                          sx={{ ml: 1 }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Box>
                   }
                 >
                   <ListItemAvatar>
