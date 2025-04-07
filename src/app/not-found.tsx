@@ -1,9 +1,9 @@
 
-// robertweb/src/app/notFound.tsx
+// zoska-gram/src/app/notFound.tsx
 
 import Typography from '@mui/material/Typography';
 
-export const metadata = { title: 'NotFound | RobertWeb'};
+export const metadata = { title: 'NotFound | Zoška Gram'};
 
 export default function NotFound() {
   return (

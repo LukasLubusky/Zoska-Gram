@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -25,11 +19,9 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([provider, providerAccountId])
 }
@@ -38,10 +30,9 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model VerificationToken {
@@ -52,7 +43,6 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
-// Optional for WebAuthn support
 model Authenticator {
   credentialID         String  @unique
   userId               String
@@ -62,8 +52,7 @@ model Authenticator {
   credentialDeviceType String
   credentialBackedUp   Boolean
   transports           String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, credentialID])
 }
@@ -74,34 +63,31 @@ model User {
   email         String          @unique
   emailVerified DateTime?
   image         String?
-  accounts      Account[]
-  sessions      Session[]
-  Authenticator Authenticator[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   savedPostIds  String[]        @default([])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  posts        Post[]
-  profile      Profile?
-  likes        Like[]
-  comments     Comment[]
-  commentLikes CommentLike[]
-  savedPosts   Post[]  @relation("SavedPosts")
+  accounts      Account[]
+  Authenticator Authenticator[]
+  comments      Comment[]
+  commentLikes  CommentLike[]
+  likes         Like[]
+  posts         Post[]
+  profile       Profile?
+  sessions      Session[]
+  savedPosts    Post[]          @relation("SavedPosts")
 }
 
 model Post {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
   imageUrl  String
   caption   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes      Like[]
-  comments   Comment[]
-  savedBy    User[]      @relation("SavedPosts")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  comments  Comment[]
+  likes     Like[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savedBy   User[]    @relation("SavedPosts")
 }
 
 model Profile {
@@ -113,10 +99,9 @@ model Profile {
   interests String[] @default([])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  followers        Follow[] @relation("Following")
-  following        Follow[] @relation("Followers")
+  followers Follow[] @relation("Following")
+  following Follow[] @relation("Followers")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Like {
@@ -124,9 +109,8 @@ model Like {
   userId    String
   postId    String
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
   @@index([userId])
@@ -134,16 +118,15 @@ model Like {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   content   String
   userId    String
   postId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post         Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
-  likes        CommentLike[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes     CommentLike[]
 
   @@index([userId])
   @@index([postId])
@@ -154,9 +137,8 @@ model CommentLike {
   userId    String
   commentId String
   createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, commentId])
   @@index([userId])
@@ -168,9 +150,8 @@ model Follow {
   followerId  String
   followingId String
   createdAt   DateTime @default(now())
-
-  follower  Profile @relation("Following", fields: [followerId], references: [id])
-  following Profile @relation("Followers", fields: [followingId], references: [id])
+  follower    Profile  @relation("Following", fields: [followerId], references: [id])
+  following   Profile  @relation("Followers", fields: [followingId], references: [id])
 
   @@unique([followerId, followingId])
   @@index([followerId])

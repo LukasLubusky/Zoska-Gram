@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions';
 import EditProfileView from '@/sections/EditProfileView';
 
-export const metadata = { title: 'Upraviť profil | RobertWeb' };
+export const metadata = { title: 'Upraviť profil | Zoška Gram' };
 
 export default async function EditProfile({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);

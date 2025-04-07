@@ -139,27 +139,6 @@ export default function SignInView() {
             </MuiLink>
           </Typography>
         </Paper>
-
-        {/* App Download Box */}
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography variant="body2" sx={{ color: '#262626', mb: 2 }}>
-            Stiahnite si aplikáciu
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-            <Box
-              component="img"
-              src="https://static.cdninstagram.com/rsrc.php/v3/yt/r/Yfc020c87j0.png"
-              alt="App Store"
-              sx={{ height: 40 }}
-            />
-            <Box
-              component="img"
-              src="https://static.cdninstagram.com/rsrc.php/v3/yw/r/LBxTdceDfgS.png"
-              alt="Google Play"
-              sx={{ height: 40 }}
-            />
-          </Box>
-        </Box>
       </Container>
 
       {/* Footer */}

@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 
 
 
-export const metadata = { title: "Detail komentaru‖ ZoskaSnap"}
+export const metadata = { title: "Detail komentaru | Zoška Gram"}
 
 export default function KomentarId( {
   params,
